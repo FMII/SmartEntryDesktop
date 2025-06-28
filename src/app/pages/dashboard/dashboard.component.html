@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Panel de Asistencia</title>
+</head>
+
+<body class="bg-[#FAFAFA] text-[#0A0A0A]">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r hidden md:flex flex-col">
+            <div class="p-4 flex items-center gap-2 text-xl">
+                <i class="fas fa-microchip"></i> SmartEntry
+            </div>
+
+            <nav class="p-4 space-y-2 text-sm flex-1 overflow-auto">
+                <a href="#" class="flex items-center gap-3 p-2 rounded">
+                    <i class="ti ti-clipboard-data text-xl"></i> Panel de Asistencia
+                </a>
+                <div class="space-y-1">
+                    <button type="button" class="flex items-center justify-between w-full p-2 rounded"
+                        data-dropdown-toggle="usuariosDropdown">
+                        <span class="flex items-center gap-2"><i class="ti ti-users text-xl"></i> Gestión de
+                            Usuarios</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div id="usuariosDropdown" class="hidden pl-8 space-y-1">
+                        <a href="#" class="block py-1 hover:underline">Profesores</a>
+                        <a href="#" class="block py-1 hover:underline">Alumnos</a>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <button type="button" class="flex items-center justify-between w-full p-2 rounded"
+                        data-dropdown-toggle="academicoDropdown">
+                        <span class="flex items-center gap-2"><i class="ti ti-book text-xl"></i> Gestión
+                            Académica</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div id="academicoDropdown" class="hidden pl-8 space-y-1">
+                        <a href="#" class="block py-1 hover:underline">Materias</a>
+                        <a href="#" class="block py-1 hover:underline">Grupos</a>
+                    </div>
+                </div>
+                <a href="#" class="flex items-center gap-3 p-2 rounded">
+                    <i class="ti ti-calendar text-xl"></i> Horarios
+                </a>
+                <a href="#" class="flex items-center gap-3 p-2 rounded">
+                    <i class="ti ti-lock-square-rounded text-xl"></i> Bloqueo de Talleres
+                </a>
+            </nav>
+
+            <!-- Cerrar sesión abajo con línea superior -->
+            <div class="border-t p-1">
+                <a href="#" class="flex items-center gap-3 p-2 rounded">
+                    <i class="ti ti-logout-2 text-xl"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Contenido -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Navbar -->
+            <header class="bg-white border-b p-2 flex items-center justify-between flex-shrink-0">
+                <h1 class="text-lg font-medium">Panel de Asistencia</h1>
+                <input type="text" placeholder="00/00/0000" class="border rounded px-2 py-1 text-sm" />
+            </header>
+
+            <!-- Tabs -->
+            <div class="bg-white border-b px-4 py-2 flex space-x-6 flex-shrink-0">
+                <button class="flex items-center gap-2 text-sm hover:text-blue-600">
+                    <i class="ti ti-chalkboard-teacher text-xl"></i> Profesores
+                </button>
+                <button class="flex items-center gap-2 text-sm hover:text-blue-600">
+                    <i class="ti ti-school text-xl"></i> Alumnos
+                </button>
+            </div>
+
+            <!-- Contenido dinámico con scroll -->
+            <main class="flex-1 overflow-auto p-6 bg-[#FAFAFA]">
+                <router-outlet></router-outlet>
+            </main>
+        </div>
+    </div>
+
+</body>
+
+</html>
