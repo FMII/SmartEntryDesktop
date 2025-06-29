@@ -8,7 +8,7 @@ export const noAuthGuard: CanActivateFn = (route, state) => {
   if (token) {
     // Usando el Router de Angular en lugar de window.location
     return router.createUrlTree(['/usermanagement']);
-    // Alternativa: return router.navigate(['/usermanagement']).then(() => false);
+    
   }
   
   return true;

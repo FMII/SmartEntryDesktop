@@ -1,48 +1,55 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const express = require('express');
 
-let mainWindow;
-let server;
+const { app, BrowserWindow } = require("electron");
+const path = require("path");
 
-const createWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    title: 'SmartEntryDesktop',
-    resizable: false,
-    webPreferences: {
-      preload: path.join(app.getAppPath(), 'preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  });
+let appWin;
 
-  // Crear servidor Express
-  const expressApp = express();
+createWindow = () => {
+    appWin = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        minWidth: 800,
+        minHeight: 600,
+        title: "Angular and Electron",
+        resizable: true,
+        webPreferences: {
+            contextIsolation: false,
+            nodeIntegration: true
+        }
+    });
+    
+    appWin.loadURL(`file://${__dirname}/dist/browser/index.html`);
 
-  // Servir archivos estáticos generados por Angular
-  expressApp.use(express.static(path.join(__dirname, 'dist', 'browser')));
+    // Interceptar errores de carga para rutas de Angular
+    appWin.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        console.log('Error de carga detectado:', errorDescription);
+        console.log('URL que falló:', validatedURL);
+        
+        // Si la URL contiene rutas de Angular, recargar index.html
+        const angularRoutes = ['/login', '/dashboard'];
+        const isAngularRoute = angularRoutes.some(route => validatedURL.includes(route));
+        
+        if (isAngularRoute) {
+            console.log('Recargando aplicación para manejar ruta de Angular');
+            setTimeout(() => {
+                appWin.loadURL(`file://${__dirname}/dist/browser/index.html`);
+            }, 100);
+        }
+    });
 
-  // Para cualquier ruta, devolver index.html (para manejar rutas SPA)
-  expressApp.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'browser', 'index.html'));
-  });
+    appWin.setMenu(null);
 
-  // Iniciar servidor en puerto 3000
-  server = expressApp.listen(3000, () => {
-    // Cargar la app Angular desde el servidor local
-    mainWindow.loadURL('http://localhost:3000');
-  });
+    appWin.webContents.openDevTools();
 
-  // Opcional: abrir DevTools para debug
-  // mainWindow.webContents.openDevTools();
-};
+    appWin.on("closed", () => {
+        appWin = null;
+    });
+}
 
-app.whenReady().then(createWindow);
+app.on("ready", createWindow);
 
-// Cerrar servidor y app cuando se cierran todas las ventanas
-app.on('window-all-closed', () => {
-  if (server) server.close();
-  app.quit();
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
 });

@@ -27,7 +27,7 @@ export class LoginComponent {
     const { email, password } = this.loginForm.value;
 
     this.auth.login(email!, password!).subscribe({
-      next: () => this.router.navigate(['usermanagement']),
+      next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
         this.errorMessage = err.message || 'Error en login';
 
