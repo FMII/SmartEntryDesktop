@@ -1,5 +1,9 @@
-<div class="text-[#0A0A0A] min-h-screen flex items-center justify-center bg-white px-4">
-  <div class="bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full">
+<div
+  class="text-[#0A0A0A] min-h-screen flex items-center justify-center bg-white px-4"
+>
+  <div
+    class="bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full"
+  >
     <h1 class="text-2xl text-center mb-2">¡Bienvenido Devuelta!</h1>
     <p class="text-xs text-center text-gray-500 mb-6">
       Inicia sesión para continuar con tus actividades.
@@ -20,7 +24,9 @@
 
       <!-- Contraseña -->
       <div>
-        <label for="password" class="block text-xs font-medium mb-4">Contraseña</label>
+        <label for="password" class="block text-xs font-medium mb-4"
+          >Contraseña</label
+        >
         <input
           type="password"
           id="password"
@@ -39,7 +45,7 @@
       <button
         type="submit"
         [disabled]="loginForm.invalid"
-        class="w-full bg-[#262626] text-xs text-white py-3 rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50"
+        class="w-full bg-gray-800 text-white text-xs py-3 px-6 rounded-full hover:bg-gray-900 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium shadow-md"
       >
         Inicia sesión
       </button>

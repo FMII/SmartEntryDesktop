@@ -10,36 +10,47 @@ createWindow = () => {
         height: 800,
         minWidth: 800,
         minHeight: 600,
-        title: "Angular and Electron",
+        title: "SmartEntry Desktop",
         resizable: true,
         webPreferences: {
-            contextIsolation: false,
-            nodeIntegration: true
+            contextIsolation: true,
+            nodeIntegration: false,
+            webSecurity: false // Permitir requests a localhost
         }
     });
     
-    appWin.loadURL(`file://${__dirname}/dist/browser/index.html`);
+    // Cargar SIEMPRE index.html - Angular maneja las rutas internamente
+    const indexPath = `file://${__dirname}/dist/browser/index.html`;
+    appWin.loadURL(indexPath);
 
-    // Interceptar errores de carga para rutas de Angular
-    appWin.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-        console.log('Error de carga detectado:', errorDescription);
-        console.log('URL que falló:', validatedURL);
-        
-        // Si la URL contiene rutas de Angular, recargar index.html
-        const angularRoutes = ['/login', '/dashboard'];
-        const isAngularRoute = angularRoutes.some(route => validatedURL.includes(route));
-        
-        if (isAngularRoute) {
-            console.log('Recargando aplicación para manejar ruta de Angular');
-            setTimeout(() => {
-                appWin.loadURL(`file://${__dirname}/dist/browser/index.html`);
-            }, 100);
+    // CRÍTICO: Interceptar CUALQUIER navegación que no sea la página inicial
+    appWin.webContents.on('will-navigate', (event, navigationUrl) => {
+        // Si Electron intenta navegar a cualquier otra URL, PREVENIRLO
+        if (navigationUrl !== indexPath) {
+            console.log('Navegación interceptada y cancelada:', navigationUrl);
+            event.preventDefault();
+            // NO recargar nada - dejar que Angular maneje internamente
         }
+    });
+
+    // Interceptar intentos de abrir nuevas ventanas
+    appWin.webContents.setWindowOpenHandler(({ url }) => {
+        console.log('Intento de abrir nueva ventana interceptado:', url);
+        return { action: 'deny' };
+    });
+
+    // Log de errores pero SIN tomar acciones
+    appWin.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        console.log('Info de carga:', { errorCode, errorDescription, validatedURL });
+        // NO hacer nada más
     });
 
     appWin.setMenu(null);
 
-    appWin.webContents.openDevTools();
+    // Solo DevTools en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+        appWin.webContents.openDevTools();
+    }
 
     appWin.on("closed", () => {
         appWin = null;
