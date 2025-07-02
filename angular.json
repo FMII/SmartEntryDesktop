@@ -45,6 +45,21 @@
               ],
               "outputHashing": "all"
             },
+            "electron": {
+              "optimization": true,
+              "outputHashing": "none",
+              "extractLicenses": false,
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
