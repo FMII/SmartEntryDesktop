@@ -1,0 +1,54 @@
+<!-- calificaciones.component.html -->
+<div class="min-h-screen bg-gray-50">
+  <!-- Sidebar y Header -->
+  <div class="flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-blue-800 text-white min-h-screen p-4">
+      <h1 class="text-2xl font-bold mb-8">SmartEntry</h1>
+
+      <nav>
+        <ul class="space-y-2">
+          <li>
+            <a routerLink="/asistencia" routerLinkActive="block px-4 py-2 rounded hover:bg-blue-700">Panel de
+              Asistencia</a>
+          </li>
+          <li>
+            <a routerLink="/calificaciones" routerLinkActive="block px-4 py-2 rounded bg-blue-900">Calificaciones</a>
+          </li>
+          <li>
+            <a routerLink="/horario-docentes" routerLinkActive="block px-4 py-2 rounded hover:bg-blue-700">Horario
+              Docentes</a>
+          </li>
+          <li>
+            <a routerLink="/historial-asistencia" routerLinkActive="block px-4 py-2 rounded hover:bg-blue-700">Historial
+              de Asistencia</a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="mt-auto pt-8">
+        <button class="flex items-center px-4 py-2 text-sm rounded hover:bg-blue-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Cerrar sesión
+        </button>
+      </div>
+
+      <footer class="text-xs mt-8 text-blue-200">
+        Powered by GIDI Systems
+      </footer>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="flex-1 p-8">
+      <h2 class="text-2xl font-bold mb-6">Calificaciones</h2>
+    </div>
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>
