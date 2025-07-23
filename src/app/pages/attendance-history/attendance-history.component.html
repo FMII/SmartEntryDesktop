@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Historial de Asistencia</title>
+    <link rel="stylesheet" href="attendance-history.component.css" />
+    <!-- Iconos (Font Awesome y Tabler Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar (ya existente) -->
+        
+        <div class="main-content">
+            <!-- Frame 17 - Header -->
+            <header class="navbar">
+                <h1>Historial de Asistencia</h1>
+            </header>
+
+            <!-- Frame 16 - Contenedor principal -->
+            <div class="frame-16">
+                <!-- Frame 29 - Contenedor superior con filtros -->
+                <div class="frame-29">
+                    <div class="filters-container">
+                        <!-- Dropdown de grupos -->
+                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarRegistros()">
+                            <option value="" disabled selected>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+                        </select>
+
+                        <!-- Segundo dropdown de materias -->
+                        <select class="group-select" [(ngModel)]="selectedMateria" (change)="filtrarRegistros()">
+                            <option value="" disabled selected>Selecciona una materia</option>
+                            <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.nombre }}</option>
+                        </select>
+
+                        <!-- Buscador (se mantiene en la derecha) -->
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar alumno..." 
+                                   [(ngModel)]="searchQuery" 
+                                   (input)="filtrarRegistros()">
+                            <i class="ti ti-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frame 22 - Contenedor de la tabla -->
+                <div class="frame-22">
+                    <div class="grades-table-container">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Matrícula</th>
+                                    <th>Nombre del alumno</th>
+                                    <th>Grupo</th>
+                                    <th>Materia</th>
+                                    <th>Fecha</th>
+                                    <th>Asistencia</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let registro of registrosFiltrados">
+                                    <td>{{ registro.id }}</td>
+                                    <td>{{ registro.matricula }}</td>
+                                    <td>{{ registro.nombre }}</td>
+                                    <td>{{ registro.grupo }}</td>
+                                    <td>{{ registro.materia }}</td>
+                                    <td>{{ registro.fecha | date:'dd/MM/yyyy' }}</td>
+                                    <td>
+                                        <span class="attendance-status" 
+                                              [class.present]="registro.asistencia === 'presente'"
+                                              [class.absent]="registro.asistencia === 'ausente'">
+                                            {{ registro.asistencia === 'presente' ? 'Presente' : 'Ausente' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-edit" (click)="editarAsistencia(registro)">
+                                            <i class="ti ti-edit"></i> Editar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <div class="system-credit">Powered by GDI Systems</div>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!-- src/app/app.component.html -->
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i class="fas fa-microchip"></i> SmartEntry
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <i class="ti ti-clipboard-data"></i> Panel de Asistencia
+      </a>
+      <a routerLink="/grades" routerLinkActive="active" class="nav-item">
+        <i class="ti ti-users"></i> Calificaciones
+      </a>
+      <a routerLink="/teachers-schedule" routerLinkActive="active" class="nav-item">
+        <i class="ti ti-calendar"></i> Horario Docentes
+      </a>
+      <a routerLink="/attendance-history" routerLinkActive="active" class="nav-item">
+        <i class="ti ti-book"></i> Historial de Asistencia
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button (click)="logout()" class="nav-item logout-btn">
+        <i class="ti ti-logout-2"></i> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- Contenido -->
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

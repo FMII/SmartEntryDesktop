@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Horario de Docentes</title>
+    <link rel="stylesheet" href="teachers-schedule.component.css" />
+    <!-- Iconos (Font Awesome y Tabler Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar (ya existente) -->
+        
+        <div class="main-content">
+            <!-- Frame 17 - Header -->
+            <header class="navbar">
+                <h1>Horario de Docentes</h1>
+            </header>
+
+            <!-- Frame 16 - Contenedor principal -->
+            <div class="frame-16">
+                <!-- Frame 29 - Contenedor superior con filtros -->
+                <div class="frame-29">
+                    <div class="filters-container">
+                        <!-- Dropdown de grupos -->
+                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarHorarios()">
+                            <option value="" disabled selected>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+                        </select>
+
+                        <!-- Dropdown de docentes -->
+                        <select class="group-select" [(ngModel)]="selectedDocente" (change)="filtrarHorarios()">
+                            <option value="" disabled selected>Selecciona un docente</option>
+                            <option *ngFor="let docente of docentes" [value]="docente.id">{{ docente.nombre }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Frame 22 - Contenedor de la tabla -->
+                <div class="frame-22">
+                    <div class="grades-table-container">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre de la materia</th>
+                                    <th>Grupo</th>
+                                    <th>Inicio de clase</th>
+                                    <th>Fin de clase</th>
+                                    <th>Día</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let horario of horariosFiltrados">
+                                    <td>{{ horario.id }}</td>
+                                    <td>{{ horario.materia }}</td>
+                                    <td>{{ horario.grupo }}</td>
+                                    <td>{{ horario.inicio }}</td>
+                                    <td>{{ horario.fin }}</td>
+                                    <td>{{ horario.dia }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <div class="system-credit">Powered by GDI Systems</div>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

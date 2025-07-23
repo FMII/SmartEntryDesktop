@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Calificaciones</title>
+    <link rel="stylesheet" href="grades.component.css" />
+    <!-- Iconos (Font Awesome y Tabler Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar (ya existente) -->
+        
+        <div class="main-content">
+            <!-- Frame 17 - Header -->
+            <header class="navbar">
+                <h1>Calificaciones</h1>
+            </header>
+
+            <!-- Frame 16 - Contenedor principal -->
+            <div class="frame-16">
+                <!-- Frame 29 - Contenedor superior con filtros -->
+                <div class="frame-29">
+                    <div class="filters-container">
+                        <!-- Dropdown de grupos (lado izquierdo) -->
+                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarAlumnos()">
+                            <option value="" disabled selected>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+                        </select>
+
+                        <!-- Buscador (lado derecho) -->
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar alumno..." 
+                                   [(ngModel)]="searchQuery" 
+                                   (input)="filtrarAlumnos()">
+                            <i class="ti ti-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frame 22 - Contenedor de la tabla -->
+                <div class="frame-22">
+                    <div class="grades-table-container">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Matrícula</th>
+                                    <th>Nombre</th>
+                                    <th>Grupo</th>
+                                    <th>Materia</th>    
+                                    <th>Unidad 1</th>
+                                    <th>Unidad 2</th>
+                                    <th>Unidad 3</th>
+                                    <th>Promedio</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let alumno of alumnosFiltrados">
+                                    <td>{{ alumno.id }}</td>
+                                    <td>{{ alumno.matricula }}</td>
+                                    <td>{{ alumno.nombre }}</td>
+                                    <td>{{ alumno.grupo }}</td>
+                                    <td>{{ alumno.materia }}</td>
+                                    <td><input type="number" [(ngModel)]="alumno.u1" min="0" max="100" /></td>
+                                    <td><input type="number" [(ngModel)]="alumno.u2" min="0" max="100" /></td>
+                                    <td><input type="number" [(ngModel)]="alumno.u3" min="0" max="100" /></td>
+                                    <td>{{ calcularPromedio(alumno) }}</td>
+                                    <td>
+                                        <button class="btn-save" (click)="guardarCalificaciones(alumno)">
+                                            <i class="ti ti-check"></i> Guardar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <div class="system-credit">Powered by GDI Systems</div>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+/* Estilos base */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #FAFAFA;
+    color: #0A0A0A;
+    margin: 0;
+    padding: 0;
+}
+
+.flex {
+    display: flex;
+}
+
+.h-screen {
+    height: 100vh;
+}
+
+/* Main content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.navbar {
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.navbar h1 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Frame structure */
+.frame-16 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.frame-29 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.frame-22 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Dropdown styles */
+.group-select {
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    min-width: 200px;
+}
+
+/* Table styles */
+.grades-table-container {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: white;
+}
+
+.grades-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.grades-table th {
+    background-color: #f3f4f6;
+    padding: 0.75rem;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    font-weight: 500;
+}
+
+.grades-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Estilos específicos para esta disposición */
+.frame-29 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+}
+
+.group-select {
+    flex: 1;
+    max-width: 250px;
+}
+
+/* Estilos específicos para el footer */
+.app-footer {
+    padding: .25rem;
+    text-align: left;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e5e7eb;
+    margin-top: auto;
+}
+
+.logout-btn {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.system-credit {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Ajuste para los dos dropdowns */
+.filters-container select.group-select {
+    flex: 1;
+    max-width: 200px;
+}
+
+/* Estilo para las horas en la tabla */
+.time-cell {
+    font-family: monospace;
+    font-weight: 500;
+}
