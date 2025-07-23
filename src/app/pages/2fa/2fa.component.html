@@ -1,0 +1,37 @@
+<div class="twofa-container">
+  <div class="twofa-card">
+    <h1 class="twofa-title">Verificación en dos pasos</h1>
+    <p class="twofa-subtitle">
+      Ingresa el código de 6 dígitos enviado a tu correo <b>{{ email }}</b>.
+    </p>
+
+    <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="twofa-form">
+      <div class="form-group">
+        <label for="code" class="form-label">Código</label>
+        <input
+          type="text"
+          id="code"
+          formControlName="code"
+          maxlength="6"
+          placeholder="Ingresa el código"
+          class="form-input"
+        />
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <button type="submit" [disabled]="codeForm.invalid || isLoading" class="submit-button">
+        {{ isLoading ? 'Verificando...' : 'Verificar código' }}
+      </button>
+    </form>
+
+    <button (click)="resendCode()" [disabled]="resendLoading" class="resend-button">
+      {{ resendLoading ? 'Reenviando...' : 'Reenviar código' }}
+    </button>
+  </div>
+</div> 

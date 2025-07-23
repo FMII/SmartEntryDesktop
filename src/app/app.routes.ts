@@ -29,5 +29,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }, // Redirige a dashboard por defecto
     ]
   },
+  { path: '2fa', loadComponent: () => import('./pages/2fa/2fa.component').then(m => m.TwoFactorComponent) },
   { path: '**', redirectTo: 'login' } // Ruta comodín DEBE ir última
 ];

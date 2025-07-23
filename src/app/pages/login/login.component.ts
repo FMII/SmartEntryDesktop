@@ -29,8 +29,12 @@ export class LoginComponent {
     this.auth.login(email!, password!).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
-        this.errorMessage = err.message || 'Error en login';
-
+        console.log('Login error:', err);
+        if (err.is2FA && err.email) {
+          this.router.navigate(['/2fa'], { state: { email: err.email } });
+        } else {
+          this.errorMessage = err.message || 'Error en login';
+        }
       },
     });
   }

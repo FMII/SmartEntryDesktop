@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,34 +12,74 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild('attendanceChart', { static: true }) chartRef!: ElementRef;
-  
-  // Datos de ejemplo
-  registros = [
-    { id: 1, nombre: 'Juan Pérez', fecha: new Date('2023-05-01'), asistencia: 'presente' },
-    { id: 2, nombre: 'María García', fecha: new Date('2023-05-01'), asistencia: 'ausente' },
-    { id: 3, nombre: 'Carlos López', fecha: new Date('2023-05-02'), asistencia: 'presente' },
-    { id: 4, nombre: 'Ana Martínez', fecha: new Date('2023-05-02'), asistencia: 'ausente' },
-    { id: 5, nombre: 'Pedro Sánchez', fecha: new Date('2023-05-03'), asistencia: 'presente' }
-  ];
+  @ViewChild('attendanceChart', { static: false }) chartRef!: ElementRef;
 
-  constructor() {
+  registros: any[] = [];
+  grupos: any[] = [];
+  ausenciasPorGrupo: { grupo: string, total: number }[] = [];
+  fechaFiltro: string = '';
+  chart: Chart | null = null;
+
+  constructor(private dashboardService: DashboardService) {
     Chart.register(...registerables);
   }
 
   ngOnInit(): void {
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.dashboardService.getGroups().subscribe(groups => {
+      this.grupos = groups;
+      this.dashboardService.getAttendances().subscribe(attendances => {
+        // Mapear nombres de grupo si es necesario
+        const mapped = this.dashboardService.mapAttendancesWithGroupNames(attendances, groups);
+        this.registros = mapped;
+        this.actualizarAusenciasPorGrupo();
+        this.renderChart();
+      });
+    });
+  }
+
+  actualizarAusenciasPorGrupo(): void {
+    // Filtrar por fecha si hay filtro
+    let registrosFiltrados = this.registros;
+    if (this.fechaFiltro) {
+      registrosFiltrados = registrosFiltrados.filter(r => {
+        const fecha = new Date(r.date || r.fecha);
+        return fecha.toISOString().slice(0, 10) === this.fechaFiltro;
+      });
+    }
+    // Agrupar ausencias por grupo
+    const groupMap: { [grupo: string]: number } = {};
+    registrosFiltrados.forEach(r => {
+      if ((r.status || r.estado)?.toLowerCase() === 'absent' || (r.status || r.estado)?.toLowerCase() === 'ausente') {
+        const grupo = r.grupo || 'Sin grupo';
+        groupMap[grupo] = (groupMap[grupo] || 0) + 1;
+      }
+    });
+    this.ausenciasPorGrupo = Object.entries(groupMap).map(([grupo, total]) => ({ grupo, total }));
+  }
+
+  onFechaFiltroChange(event: any): void {
+    this.fechaFiltro = event.target.value;
+    this.actualizarAusenciasPorGrupo();
     this.renderChart();
   }
 
-  private renderChart(): void {
+  renderChart(): void {
+    if (!this.chartRef) return;
     const ctx = this.chartRef.nativeElement.getContext('2d');
-    new Chart(ctx, {
+    if (this.chart) {
+      this.chart.destroy();
+    }
+    this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Grupo A', 'Grupo B', 'Grupo C', 'Grupo D'],
+        labels: this.ausenciasPorGrupo.map(a => a.grupo),
         datasets: [{
           label: 'Número de ausencias',
-          data: [12, 19, 8, 15],
+          data: this.ausenciasPorGrupo.map(a => a.total),
           backgroundColor: 'rgba(239, 68, 68, 0.7)',
           borderColor: 'rgba(239, 68, 68, 1)',
           borderWidth: 1

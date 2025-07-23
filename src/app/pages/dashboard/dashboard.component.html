@@ -13,10 +13,10 @@
 <body>
     <div class="flex h-screen">
         <div class="main-content">
-            <!-- Header consistent with grades -->
+            <!-- Header -->
             <header class="navbar">
                 <h1>Panel de Asistencia</h1>
-                <input type="text" placeholder="00/00/0000" class="date-input">
+                <input type="date" class="date-input" (change)="onFechaFiltroChange($event)">
             </header>
             
             <!-- Tabs container smaller -->
@@ -32,9 +32,7 @@
                     <!-- Chart container (Frame 29) -->
                     <div class="chart-container">
                         <h2>Alumnos por grupo con más ausencias</h2>
-                        <div class="chart-placeholder">
-                            [Gráfica de barras verticales iría aquí]
-                        </div>
+                        <canvas #attendanceChart style="width:100%;height:300px;"></canvas>
                     </div>
                     
                     <!-- Table container (Frame 22) -->
@@ -48,68 +46,18 @@
                                         <th>Nombre</th>
                                         <th>Fecha</th>
                                         <th>Asistencia</th>
+                                        <th>Grupo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>001</td>
-                                        <td>Juan Pérez</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>002</td>
-                                        <td>María García</td>
-                                        <td>15/05/2023</td>
-                                        <td class="absent">Ausente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>003</td>
-                                        <td>Carlos López</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>004</td>
-                                        <td>Ana Martínez</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>005</td>
-                                        <td>Luis Rodríguez</td>
-                                        <td>15/05/2023</td>
-                                        <td class="absent">Ausente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>006</td>
-                                        <td>Sofía Hernández</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>007</td>
-                                        <td>Jorge Díaz</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>008</td>
-                                        <td>Patricia Sánchez</td>
-                                        <td>15/05/2023</td>
-                                        <td class="absent">Ausente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>009</td>
-                                        <td>Roberto Ramírez</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
-                                    </tr>
-                                    <tr>
-                                        <td>010</td>
-                                        <td>Laura Flores</td>
-                                        <td>15/05/2023</td>
-                                        <td class="present">Presente</td>
+                                    <tr *ngFor="let r of registros">
+                                        <td>{{ r.id }}</td>
+                                        <td>{{ r.users_attendance_user_idTousers?.first_name || r.nombre || r.first_name }} {{ r.users_attendance_user_idTousers?.last_name || r.apellido || r.last_name }}</td>
+                                        <td>{{ (r.date || r.fecha) | date:'dd/MM/yyyy' }}</td>
+                                        <td [ngClass]="{'present': (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente', 'absent': (r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente'}">
+                                            {{ (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente' ? 'Presente' : ((r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente' ? 'Ausente' : (r.status || r.estado)) }}
+                                        </td>
+                                        <td>{{ r.grupo }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -118,7 +66,7 @@
                 </div>
             </div>
 
-            <!-- Footer consistent with grades -->
+            <!-- Footer -->
             <footer class="app-footer">
                 <div class="system-credit">Powered by GDI Systems</div>
             </footer>

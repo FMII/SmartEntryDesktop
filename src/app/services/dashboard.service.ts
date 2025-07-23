@@ -33,4 +33,21 @@ export class DashboardService {
       })
     );
   }
+
+  // Obtener grupos
+  getGroups(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/groups/list`);
+  }
+
+  // Mapear asistencias con nombre de grupo (si solo hay ID)
+  mapAttendancesWithGroupNames(attendances: any[], groups: any[]): any[] {
+    const groupMap = groups.reduce((acc, group) => {
+      acc[group.id] = group.name;
+      return acc;
+    }, {} as { [id: number]: string });
+    return attendances.map(a => ({
+      ...a,
+      grupo: a.grupo || groupMap[a.group_id] || a.group_id || 'Sin grupo'
+    }));
+  }
 }
