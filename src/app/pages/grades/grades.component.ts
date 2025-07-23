@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { GradesService } from '../../services/grades.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-grades',
@@ -11,63 +13,92 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, FormsModule, RouterLink]
 })
 export class GradesComponent implements OnInit {
-  // Datos de ejemplo (deberías reemplazarlos con tus datos reales)
-  grupos = [
-    { id: 1, nombre: 'Grupo A' },
-    { id: 2, nombre: 'Grupo B' },
-    { id: 3, nombre: 'Grupo C' }
-  ];
-
-  alumnos = [
-    { id: 1, matricula: '2023001', nombre: 'Juan Pérez', grupo: 'Grupo A', grupoId: 1, materia: 'Matemáticas', u1: 85, u2: 90, u3: 88 },
-    { id: 2, matricula: '2023002', nombre: 'María García', grupo: 'Grupo A', grupoId: 1, materia: 'Matemáticas', u1: 92, u2: 95, u3: 93 },
-    { id: 3, matricula: '2023003', nombre: 'Carlos López', grupo: 'Grupo B', grupoId: 2, materia: 'Matemáticas', u1: 78, u2: 85, u3: 80 },
-    { id: 4, matricula: '2023004', nombre: 'Ana Martínez', grupo: 'Grupo C', grupoId: 3, materia: 'Matemáticas', u1: 88, u2: 82, u3: 90 }
-  ];
-
-  // Variables para filtrado
+  grupos: any[] = [];
+  alumnos: any[] = [];
+  alumnosFiltrados: any[] = [];
   searchQuery: string = '';
   selectedGroup: any = null;
   activeTab: string = '1';
-  alumnosFiltrados: any[] = [];
+
+  constructor(private gradesService: GradesService) {}
 
   ngOnInit(): void {
-    this.filtrarAlumnos();
+    this.cargarGrupos();
   }
 
-  // Filtra alumnos por grupo y búsqueda
+  cargarGrupos(): void {
+    this.gradesService.getGroups().subscribe(groups => {
+      this.grupos = groups;
+    });
+  }
+
+  onGroupChange(): void {
+    if (!this.selectedGroup) return;
+    this.gradesService.getStudentsByGroup(this.selectedGroup).subscribe(students => {
+      // Para cada alumno, obtener sus calificaciones
+      const requests = students.map((alumno: any) =>
+        this.gradesService.getGradesByStudent(alumno.id)
+      );
+      forkJoin(requests).subscribe(gradesArr => {
+        // Unir datos de alumno y sus calificaciones
+        this.alumnos = students.map((alumno: any, idx: number) => {
+          const grades = gradesArr[idx][0] || {};
+          return {
+            ...alumno,
+            materia: grades.subject_name || '',
+            u1: grades.u1 || 0,
+            u2: grades.u2 || 0,
+            u3: grades.u3 || 0,
+            gradeId: grades.id || null
+          };
+        });
+        this.filtrarAlumnos();
+      });
+    });
+  }
+
   filtrarAlumnos(): void {
     this.alumnosFiltrados = this.alumnos.filter(alumno => {
       const matchesSearch = !this.searchQuery || 
-        alumno.nombre.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-        alumno.matricula.toLowerCase().includes(this.searchQuery.toLowerCase());
-      
-      const matchesGroup = !this.selectedGroup || alumno.grupoId == this.selectedGroup;
-      
+        alumno.nombre?.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+        alumno.matricula?.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const matchesGroup = !this.selectedGroup || alumno.group_id == this.selectedGroup;
       return matchesSearch && matchesGroup;
     });
   }
 
-  // Calcula el promedio de un alumno
   calcularPromedio(alumno: any): number {
-    return Math.round((alumno.u1 + alumno.u2 + alumno.u3) / 3);
+    return Math.round(((alumno.u1 || 0) + (alumno.u2 || 0) + (alumno.u3 || 0)) / 3);
   }
 
-  // Guarda las calificaciones (simulado)
   guardarCalificaciones(alumno: any): void {
-    // Aquí iría la lógica para guardar en el backend
-    console.log('Guardando calificaciones:', alumno);
-    alert(`Calificaciones de ${alumno.nombre} guardadas correctamente`);
+    const data = {
+      u1: alumno.u1,
+      u2: alumno.u2,
+      u3: alumno.u3
+    };
+    if (alumno.gradeId) {
+      this.gradesService.updateGrade(alumno.gradeId, data).subscribe(() => {
+        alert(`Calificaciones de ${alumno.nombre} actualizadas correctamente`);
+      });
+    } else {
+      // Crear nueva calificación
+      const newData = {
+        student_id: alumno.id,
+        subject_id: alumno.subject_id, // Ajusta si tienes el id de materia
+        ...data
+      };
+      this.gradesService.createGrade(newData).subscribe(() => {
+        alert(`Calificaciones de ${alumno.nombre} guardadas correctamente`);
+      });
+    }
   }
 
-  // Cambia la pestaña activa
   changeTab(tab: string): void {
     this.activeTab = tab;
     // Aquí podrías cargar datos diferentes según el periodo seleccionado
-    console.log('Cambiando a periodo:', tab);
   }
 
-  // Método alternativo para filtrar solo por grupo
   filtrarGrupo(): void {
     this.filtrarAlumnos();
   }
