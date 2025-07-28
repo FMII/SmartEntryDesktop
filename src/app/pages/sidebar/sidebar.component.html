@@ -1,9 +1,15 @@
 <!-- src/app/app.component.html -->
-<div class="flex h-screen">
+<div class="flex h-screen" [class.sidebar-collapsed]="isSidebarCollapsed">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <!-- Botón para ocultar/mostrar sidebar -->
+    <button (click)="toggleSidebar()" class="sidebar-toggle">
+      <i class="ti" [class.ti-chevron-left]="!isSidebarCollapsed" [class.ti-chevron-right]="isSidebarCollapsed"></i>
+    </button>
+    
     <div class="sidebar-header">
-      <i class="fas fa-microchip"></i> SmartEntry
+      <i class="ti ti-device-mobile"></i>
+      <span class="logo-text" [class.hidden]="isSidebarCollapsed">SmartEntry</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -30,6 +36,20 @@
 
   <!-- Contenido -->
   <div class="main-content">
-    <router-outlet></router-outlet>
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+    
+    <!-- Footer fijo -->
+    <footer class="fixed-footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <span>© 2024 SmartEntry. Todos los derechos reservados.</span>
+        </div>
+        <div class="footer-right">
+          <span>Powered by GDI Systems</span>
+        </div>
+      </div>
+    </footer>
   </div>
 </div>

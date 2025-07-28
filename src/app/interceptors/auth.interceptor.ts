@@ -17,9 +17,13 @@ export const authInterceptor: HttpInterceptorFn = (
   
   // Clonar la solicitud con el token si existe
   const token = localStorage.getItem('token');
+  console.log('🔍 Interceptor - URL:', req.url);
+  console.log('🔍 Interceptor - Token disponible:', !!token);
+  console.log('🔍 Interceptor - Token completo:', token);
+  
   const authReq = token ? req.clone({
     setHeaders: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, 
       'Content-Type': 'application/json'
     }
   }) : req;

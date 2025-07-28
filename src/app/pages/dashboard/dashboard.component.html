@@ -1,77 +1,97 @@
-<!DOCTYPE html>
-<html lang="es">
+<!-- Contenido específico de la vista de dashboard -->
+<div class="dashboard-content">
+    <!-- Header -->
+    <header class="content-header">
+        <h1 class="header-title">Panel de Asistencia</h1>
+        <input type="date" class="date-input" (change)="onFechaFiltroChange($event)">
+    </header>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel de Asistencia</title>
-    <link rel="stylesheet" href="dashboard.component.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-</head>
-
-<body>
-    <div class="flex h-screen">
-        <div class="main-content">
-            <!-- Header -->
-            <header class="navbar">
-                <h1>Panel de Asistencia</h1>
-                <input type="date" class="date-input" (change)="onFechaFiltroChange($event)">
-            </header>
-            
-            <!-- Tabs container smaller -->
-            <div class="tabs-container-sm">
-                <button class="tab-btn-sm active">
-                    <i class="ti ti-school"></i> Alumnos
-                </button>
-            </div>
-
-            <!-- Main content container (Frame 16) -->
-            <div class="attendance-container">
-                <div class="frames-wrapper">
-                    <!-- Chart container (Frame 29) -->
-                    <div class="chart-container">
-                        <h2>Alumnos por grupo con más ausencias</h2>
-                        <canvas #attendanceChart style="width:100%;height:300px;"></canvas>
+    <!-- Contenido principal -->
+    <div class="content-body">
+        <div class="content-card">
+            <!-- Tabs y controles -->
+            <div class="tabs-container">
+                <div class="tabs-row">
+                    <!-- Tabs -->
+                    <div class="tabs-group">
+                        <button class="tab-btn" [class.active]="vista === 'grafica'" (click)="setVista('grafica')">
+                            <i class="ti ti-chart-bar"></i>
+                            <span class="btn-text">Gráfica</span>
+                        </button>
+                        <button class="tab-btn" [class.active]="vista === 'tabla'" (click)="setVista('tabla')">
+                            <i class="ti ti-table"></i>
+                            <span class="btn-text">Tabla</span>
+                        </button>
                     </div>
-                    
-                    <!-- Table container (Frame 22) -->
-                    <div class="table-container">
-                        <h2>Registro de asistencia</h2>
-                        <div class="table-scroll">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Fecha</th>
-                                        <th>Asistencia</th>
-                                        <th>Grupo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr *ngFor="let r of registros">
-                                        <td>{{ r.id }}</td>
-                                        <td>{{ r.users_attendance_user_idTousers?.first_name || r.nombre || r.first_name }} {{ r.users_attendance_user_idTousers?.last_name || r.apellido || r.last_name }}</td>
-                                        <td>{{ (r.date || r.fecha) | date:'dd/MM/yyyy' }}</td>
-                                        <td [ngClass]="{'present': (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente', 'absent': (r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente'}">
-                                            {{ (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente' ? 'Presente' : ((r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente' ? 'Ausente' : (r.status || r.estado)) }}
-                                        </td>
-                                        <td>{{ r.grupo }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+
+                    <!-- Controles adicionales -->
+                    <div class="controls-group">
+                        <button (click)="recargarDatos()" 
+                                class="control-btn">
+                            <i class="ti ti-refresh"></i>
+                            <span class="btn-text">Recargar</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer -->
-            <footer class="app-footer">
-                <div class="system-credit">Powered by GDI Systems</div>
-            </footer>
+            <!-- Separador -->
+            <div class="separator"></div>
+
+            <!-- Contenido dinámico -->
+            <div class="content-dynamic">
+                <!-- Chart container -->
+                <div *ngIf="vista === 'grafica'" class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Alumnos por grupo con más ausencias</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas #attendanceChart></canvas>
+                    </div>
+                </div>
+
+                <!-- Table container -->
+                <div *ngIf="vista === 'tabla'" class="table-container">
+                    <div class="table-header-section">
+                        <h2 class="table-title">Registro de asistencia</h2>
+                        <div class="table-controls">
+                            <label for="grupoSelect" class="filter-label">Grupo:</label>
+                            <select id="grupoSelect" 
+                                    [(ngModel)]="grupoSeleccionado" 
+                                    (change)="onGrupoChange($event)"
+                                    class="filter-select">
+                                <option *ngFor="let g of grupos" [value]="g.id">{{ g.name }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tabla con scroll -->
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead class="table-header">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Fecha</th>
+                                    <th>Asistencia</th>
+                                    <th>Grupo</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-body">
+                                <tr *ngFor="let r of registros" class="table-row">
+                                    <td>{{ r.id }}</td>
+                                    <td>{{ r.first_name || r.user?.first_name }} {{ r.last_name || r.user?.last_name }}</td>
+                                    <td>{{ (r.date || r.fecha) | date:'dd/MM/yyyy' }}</td>
+                                    <td [ngClass]="{'present': (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente', 'absent': (r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente'}">
+                                        {{ (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente' ? 'Presente' : ((r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente' ? 'Ausente' : (r.status || r.estado)) }}
+                                    </td>
+                                    <td>{{ r.grupo }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-
-</html>
+</div>

@@ -13,7 +13,13 @@ import { Router } from '@angular/router';
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
+  isSidebarCollapsed = false;
+
   constructor(private auth: AuthService, private router: Router) {}
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
 
   logout() {
     this.auth.logout();

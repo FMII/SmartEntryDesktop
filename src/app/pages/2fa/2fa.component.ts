@@ -47,9 +47,15 @@ export class TwoFactorComponent {
     this.http.post<any>('http://localhost:3000/api/users/verify', { email: this.email, code }).subscribe({
       next: (res) => {
         if (res.status === 'success') {
-          // Guardar token si viene, limpiar email pendiente
+          // Guardar todos los datos del usuario
           if (res.data?.token) {
             localStorage.setItem('token', res.data.token);
+          }
+          if (res.data?.id) {
+            localStorage.setItem('userId', res.data.id);
+          }
+          if (res.data?.email) {
+            localStorage.setItem('email', res.data.email);
           }
           localStorage.removeItem('pending2faEmail');
           this.router.navigate(['/dashboard']);

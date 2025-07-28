@@ -1,100 +1,163 @@
-<!DOCTYPE html>
-<html lang="es">
+<!-- Contenido específico de la vista de historial de asistencia -->
+<div class="attendance-history-content">
+    <!-- Header -->
+    <header class="content-header">
+        <h1 class="header-title">Historial de Asistencia</h1>
+    </header>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Historial de Asistencia</title>
-    <link rel="stylesheet" href="attendance-history.component.css" />
-    <!-- Iconos (Font Awesome y Tabler Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-</head>
-
-<body>
-    <div class="flex h-screen">
-        <!-- Sidebar (ya existente) -->
-        
-        <div class="main-content">
-            <!-- Frame 17 - Header -->
-            <header class="navbar">
-                <h1>Historial de Asistencia</h1>
-            </header>
-
-            <!-- Frame 16 - Contenedor principal -->
-            <div class="frame-16">
-                <!-- Frame 29 - Contenedor superior con filtros -->
-                <div class="frame-29">
-                    <div class="filters-container">
-                        <!-- Dropdown de grupos -->
-                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarRegistros()">
-                            <option value="" disabled selected>Selecciona un grupo</option>
-                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+    <!-- Contenido principal -->
+    <div class="content-body">
+        <div class="content-card">
+            <!-- Filtros responsivos -->
+            <div class="filters-container">
+                <!-- Primera fila de filtros -->
+                <div class="filters-row">
+                    <!-- Dropdown de grupos -->
+                    <div class="filter-group">
+                        <label for="groupSelect" class="filter-label">Grupo:</label>
+                        <select id="groupSelect" 
+                                [(ngModel)]="selectedGroup" 
+                                (change)="onGroupChange()"
+                                class="filter-select">
+                            <option value="" disabled>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.name }}</option>
                         </select>
+                    </div>
 
-                        <!-- Segundo dropdown de materias -->
-                        <select class="group-select" [(ngModel)]="selectedMateria" (change)="filtrarRegistros()">
-                            <option value="" disabled selected>Selecciona una materia</option>
-                            <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.nombre }}</option>
+                    <!-- Dropdown de materias -->
+                    <div class="filter-group">
+                        <label for="subjectSelect" class="filter-label">Materia:</label>
+                        <select id="subjectSelect" 
+                                [(ngModel)]="selectedMateria" 
+                                (change)="onMateriaChange()"
+                                class="filter-select">
+                            <option value="">Todas las materias</option>
+                            <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.name }}</option>
                         </select>
+                    </div>
 
-                        <!-- Buscador (se mantiene en la derecha) -->
-                        <div class="search-box">
-                            <input type="text" placeholder="Buscar alumno..." 
+                    <!-- Buscador -->
+                    <div class="filter-group search-group">
+                        <label for="search" class="sr-only">Buscar alumno</label>
+                        <div class="search-container">
+                            <i class="ti ti-search search-icon"></i>
+                            <input type="text" 
+                                   id="search"
                                    [(ngModel)]="searchQuery" 
-                                   (input)="filtrarRegistros()">
-                            <i class="ti ti-search"></i>
+                                   (input)="onSearchChange()"
+                                   class="search-input"
+                                   placeholder="Buscar alumno..." />
                         </div>
                     </div>
                 </div>
 
-                <!-- Frame 22 - Contenedor de la tabla -->
-                <div class="frame-22">
-                    <div class="grades-table-container">
-                        <table class="grades-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Matrícula</th>
-                                    <th>Nombre del alumno</th>
-                                    <th>Grupo</th>
-                                    <th>Materia</th>
-                                    <th>Fecha</th>
-                                    <th>Asistencia</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let registro of registrosFiltrados">
-                                    <td>{{ registro.id }}</td>
-                                    <td>{{ registro.matricula }}</td>
-                                    <td>{{ registro.nombre }}</td>
-                                    <td>{{ registro.grupo }}</td>
-                                    <td>{{ registro.materia }}</td>
-                                    <td>{{ registro.fecha | date:'dd/MM/yyyy' }}</td>
-                                    <td>
-                                        <span class="attendance-status" 
-                                              [class.present]="registro.asistencia === 'presente'"
-                                              [class.absent]="registro.asistencia === 'ausente'">
-                                            {{ registro.asistencia === 'presente' ? 'Presente' : 'Ausente' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-edit" (click)="editarAsistencia(registro)">
-                                            <i class="ti ti-edit"></i> Editar
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Segunda fila de filtros -->
+                <div class="filters-row">
+                    <!-- Filtros de fecha -->
+                    <div class="filter-group">
+                        <label for="fechaInicio" class="filter-label">Desde:</label>
+                        <input type="date" 
+                               id="fechaInicio"
+                               [(ngModel)]="fechaInicio" 
+                               (change)="onFechaInicioChange()"
+                               class="filter-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="fechaFin" class="filter-label">Hasta:</label>
+                        <input type="date" 
+                               id="fechaFin"
+                               [(ngModel)]="fechaFin" 
+                               (change)="onFechaFinChange()"
+                               class="filter-input">
+                    </div>
+
+                    <!-- Controles de actualización -->
+                    <div class="filter-group controls-group">
+                        <button (click)="recargarDatos()" 
+                                [disabled]="loading"
+                                class="control-btn refresh-btn">
+                            <i class="ti ti-refresh" [class.animate-spin]="loading"></i>
+                            <span class="btn-text">Recargar</span>
+                        </button>
+                        <!-- Botón Auto removido para evitar recargas automáticas -->
                     </div>
                 </div>
             </div>
 
-            <footer class="app-footer">
-                <div class="system-credit">Powered by GDI Systems</div>
-            </footer>
+            <!-- Línea separadora -->
+            <div class="separator"></div>
+
+            <!-- Mensaje de error -->
+            <div *ngIf="error" class="error-message">
+                <i class="ti ti-alert-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+
+            <!-- Loading spinner -->
+            <div *ngIf="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <!-- Tabla responsiva -->
+            <div *ngIf="!loading && registrosPaginados.length > 0" class="table-container">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead class="table-header">
+                            <tr>
+                                <th>ID</th>
+                                <th>NOMBRE DEL ALUMNO</th>
+                                <th>GRUPO</th>
+                                <th>MATERIA</th>
+                                <th>FECHA</th>
+                                <th>ASISTENCIA</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            <tr *ngFor="let registro of registrosFiltrados" class="table-row">
+                                <td>{{ registro.id }}</td>
+                                <td>{{ registro.student_name }}</td>
+                                <td>{{ registro.group_name }}</td>
+                                <td>{{ registro.subject_name }}</td>
+                                <td>{{ formatearFecha(registro.date) }}</td>
+                                <td>
+                                    <span class="attendance-status" [class]="getEstadoAsistenciaClass(registro.status)">
+                                        {{ getEstadoAsistenciaText(registro.status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button (click)="cambiarEstadoAsistencia(registro, 'present')"
+                                                [disabled]="loading || registro.status === 'present'"
+                                                class="action-btn present-btn">
+                                            <i class="ti ti-check"></i>
+                                            <span class="btn-text">Presente</span>
+                                        </button>
+                                        <button (click)="cambiarEstadoAsistencia(registro, 'absent')"
+                                                [disabled]="loading || registro.status === 'absent'"
+                                                class="action-btn absent-btn">
+                                            <i class="ti ti-x"></i>
+                                            <span class="btn-text">Ausente</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mensaje cuando no hay datos -->
+            <div *ngIf="!loading && registrosPaginados.length === 0" class="empty-state">
+                <i class="ti ti-database-off"></i>
+                <p>No se encontraron registros de asistencia</p>
+            </div>
+
+            <!-- Scroll infinito - Sin paginación -->
+            <div class="scroll-info">
+                <p>Total de registros: {{ totalItems }}</p>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>

@@ -66,7 +66,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "electron"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",

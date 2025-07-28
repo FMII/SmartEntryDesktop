@@ -1,92 +1,137 @@
-<!DOCTYPE html>
-<html lang="es">
+<!-- Contenido específico de la vista de calificaciones -->
+<div class="grades-content">
+    <!-- Header -->
+    <header class="content-header">
+        <h1 class="header-title">Calificaciones</h1>
+    </header>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel de Calificaciones</title>
-    <link rel="stylesheet" href="grades.component.css" />
-    <!-- Iconos (Font Awesome y Tabler Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-</head>
-
-<body>
-    <div class="flex h-screen">
-        <!-- Sidebar (ya existente) -->
-        
-        <div class="main-content">
-            <!-- Frame 17 - Header -->
-            <header class="navbar">
-                <h1>Calificaciones</h1>
-            </header>
-
-            <!-- Frame 16 - Contenedor principal -->
-            <div class="frame-16">
-                <!-- Frame 29 - Contenedor superior con filtros -->
-                <div class="frame-29">
-                    <div class="filters-container">
-                        <!-- Dropdown de grupos (lado izquierdo) -->
-                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarAlumnos()">
-                            <option value="" disabled selected>Selecciona un grupo</option>
-                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+    <!-- Contenido principal -->
+    <div class="content-body">
+        <div class="content-card">
+            <!-- Filtros y controles -->
+            <div class="filters-container">
+                <div class="filters-row">
+                    <!-- Dropdown de grupos -->
+                    <div class="filter-group">
+                        <label for="groupSelect" class="filter-label">Grupo:</label>
+                        <select id="groupSelect" 
+                                [(ngModel)]="selectedGroup" 
+                                (change)="onGroupChange()"
+                                class="filter-select">
+                            <option value="" disabled>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.name }}</option>
                         </select>
+                    </div>
 
-                        <!-- Buscador (lado derecho) -->
-                        <div class="search-box">
-                            <input type="text" placeholder="Buscar alumno..." 
+                    <!-- Dropdown de materias (solo visible si hay más de una) -->
+                    <div class="filter-group" *ngIf="showSubjectDropdown">
+                        <label for="subjectSelect" class="filter-label">Materia:</label>
+                        <select id="subjectSelect" 
+                                [(ngModel)]="selectedSubject" 
+                                (change)="onSubjectChange()"
+                                class="filter-select">
+                            <option value="" disabled>Selecciona una materia</option>
+                            <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Indicador de materia única -->
+                    <div class="filter-group" *ngIf="!showSubjectDropdown && selectedSubject && materias.length === 1">
+                        <label class="filter-label">Materia:</label>
+                        <span class="subject-indicator">{{ materias[0].name }}</span>
+                    </div>
+
+                    <!-- Buscador -->
+                    <div class="search-group">
+                        <label for="search" class="filter-label">Buscar alumno:</label>
+                        <div class="search-container">
+                            <div class="search-icon">
+                                <i class="ti ti-search"></i>
+                            </div>
+                            <input type="text" 
+                                   id="search"
                                    [(ngModel)]="searchQuery" 
-                                   (input)="filtrarAlumnos()">
-                            <i class="ti ti-search"></i>
+                                   (input)="filtrarAlumnos()"
+                                   class="search-input"
+                                   placeholder="Buscar alumno..." />
                         </div>
                     </div>
-                </div>
 
-                <!-- Frame 22 - Contenedor de la tabla -->
-                <div class="frame-22">
-                    <div class="grades-table-container">
-                        <table class="grades-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Matrícula</th>
-                                    <th>Nombre</th>
-                                    <th>Grupo</th>
-                                    <th>Materia</th>    
-                                    <th>Unidad 1</th>
-                                    <th>Unidad 2</th>
-                                    <th>Unidad 3</th>
-                                    <th>Promedio</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let alumno of alumnosFiltrados">
-                                    <td>{{ alumno.id }}</td>
-                                    <td>{{ alumno.matricula }}</td>
-                                    <td>{{ alumno.nombre }}</td>
-                                    <td>{{ alumno.grupo }}</td>
-                                    <td>{{ alumno.materia }}</td>
-                                    <td><input type="number" [(ngModel)]="alumno.u1" min="0" max="100" /></td>
-                                    <td><input type="number" [(ngModel)]="alumno.u2" min="0" max="100" /></td>
-                                    <td><input type="number" [(ngModel)]="alumno.u3" min="0" max="100" /></td>
-                                    <td>{{ calcularPromedio(alumno) }}</td>
-                                    <td>
-                                        <button class="btn-save" (click)="guardarCalificaciones(alumno)">
-                                            <i class="ti ti-check"></i> Guardar
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Controles de actualización -->
+                    <div class="controls-group">
+                        <button (click)="recargarDatos()" 
+                                class="control-btn">
+                            <i class="ti ti-refresh"></i>
+                            <span class="btn-text">Recargar</span>
+                        </button>
+                        <button (click)="toggleAutoRefresh()" 
+                                [class]="autoRefreshEnabled ? 'auto-btn active' : 'control-btn'"
+                                class="control-btn">
+                            <i class="ti ti-clock"></i>
+                            <span class="btn-text">Auto</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <footer class="app-footer">
-                <div class="system-credit">Powered by GDI Systems</div>
-            </footer>
+            <!-- Separador -->
+            <div class="separator"></div>
+
+            <!-- Tabla con scroll -->
+            <div class="table-container">
+                <!-- Mensaje cuando no hay unidades configuradas -->
+                <div *ngIf="subjectUnits.length === 0" class="no-units-message">
+                    <p>⚠️ No hay unidades configuradas para esta materia. Se usarán unidades por defecto (1-5).</p>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead class="table-header">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Grupo</th>
+                                <th>Materia</th>
+                                <th *ngFor="let unit of subjectUnits">Unidad {{ unit.number }}</th>
+                                <th>Promedio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            <tr *ngFor="let alumno of alumnosFiltrados" class="table-row">
+                                <td>{{ alumno.id }}</td>
+                                <td>{{ alumno.nombre }}</td>
+                                <td>{{ getNombreGrupo(alumno) }}</td>
+                                <td>{{ alumno.materia }}</td>
+                                <td *ngFor="let unit of subjectUnits">
+                                    <input type="number" 
+                                           [(ngModel)]="alumno['u' + unit.number]" 
+                                           min="0" 
+                                           max="100"
+                                           class="grade-input" />
+                                </td>
+                                <td class="font-medium">{{ calcularPromedio(alumno) }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button (click)="guardarCalificaciones(alumno)"
+                                                class="action-btn save-btn"
+                                                [disabled]="!selectedSubject">
+                                            <i class="ti ti-device-floppy"></i>
+                                            <span class="btn-text">Guardar</span>
+                                        </button>
+                                        <button (click)="actualizarCalificaciones(alumno)"
+                                                class="action-btn update-btn"
+                                                [disabled]="!selectedSubject">
+                                            <i class="ti ti-edit"></i>
+                                            <span class="btn-text">Actualizar</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>

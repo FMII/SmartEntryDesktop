@@ -1,78 +1,125 @@
-<!DOCTYPE html>
-<html lang="es">
+<!-- Contenido específico de la vista de horario de docentes -->
+<div class="teachers-schedule-content">
+    <!-- Header -->
+    <header class="content-header">
+        <h1 class="header-title">Horario de Docentes</h1>
+    </header>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Horario de Docentes</title>
-    <link rel="stylesheet" href="teachers-schedule.component.css" />
-    <!-- Iconos (Font Awesome y Tabler Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-</head>
-
-<body>
-    <div class="flex h-screen">
-        <!-- Sidebar (ya existente) -->
-        
-        <div class="main-content">
-            <!-- Frame 17 - Header -->
-            <header class="navbar">
-                <h1>Horario de Docentes</h1>
-            </header>
-
-            <!-- Frame 16 - Contenedor principal -->
-            <div class="frame-16">
-                <!-- Frame 29 - Contenedor superior con filtros -->
-                <div class="frame-29">
-                    <div class="filters-container">
-                        <!-- Dropdown de grupos -->
-                        <select class="group-select" [(ngModel)]="selectedGroup" (change)="filtrarHorarios()">
-                            <option value="" disabled selected>Selecciona un grupo</option>
-                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
-                        </select>
-
-                        <!-- Dropdown de docentes -->
-                        <select class="group-select" [(ngModel)]="selectedDocente" (change)="filtrarHorarios()">
+    <!-- Contenido principal -->
+    <div class="content-body">
+        <div class="content-card">
+            <!-- Filtros y controles -->
+            <div class="filters-container">
+                <div class="filters-row">
+                    <!-- Dropdown de docentes -->
+                    <div class="filter-group">
+                        <label for="teacherSelect" class="filter-label">Docente:</label>
+                        <select id="teacherSelect" 
+                                [(ngModel)]="selectedDocente" 
+                                (change)="onDocenteChange()"
+                                [disabled]="loading"
+                                class="filter-select">
                             <option value="" disabled selected>Selecciona un docente</option>
-                            <option *ngFor="let docente of docentes" [value]="docente.id">{{ docente.nombre }}</option>
+                            <option *ngFor="let docente of docentes" [value]="docente.id">
+                                {{ docente.nombre || docente.first_name + ' ' + docente.last_name }}
+                            </option>
                         </select>
                     </div>
-                </div>
 
-                <!-- Frame 22 - Contenedor de la tabla -->
-                <div class="frame-22">
-                    <div class="grades-table-container">
-                        <table class="grades-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre de la materia</th>
-                                    <th>Grupo</th>
-                                    <th>Inicio de clase</th>
-                                    <th>Fin de clase</th>
-                                    <th>Día</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let horario of horariosFiltrados">
-                                    <td>{{ horario.id }}</td>
-                                    <td>{{ horario.materia }}</td>
-                                    <td>{{ horario.grupo }}</td>
-                                    <td>{{ horario.inicio }}</td>
-                                    <td>{{ horario.fin }}</td>
-                                    <td>{{ horario.dia }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Dropdown de grupos -->
+                    <div class="filter-group">
+                        <label for="groupSelect" class="filter-label">Grupo:</label>
+                        <select id="groupSelect" 
+                                [(ngModel)]="selectedGroup" 
+                                (change)="onGroupChange()"
+                                [disabled]="loading || !selectedDocente"
+                                class="filter-select">
+                            <option value="">Todos los grupos</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">
+                                {{ grupo.nombre || grupo.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Controles de actualización -->
+                    <div class="controls-group">
+                        <button (click)="recargarDatos()" 
+                                [disabled]="loading"
+                                class="control-btn">
+                            <i class="ti ti-refresh" [class.animate-spin]="loading"></i>
+                            <span class="btn-text">Recargar</span>
+                        </button>
+                        <button (click)="toggleAutoRefresh()" 
+                                [class]="autoRefreshEnabled ? 'auto-btn active' : 'control-btn'"
+                                class="control-btn">
+                            <i class="ti ti-clock"></i>
+                            <span class="btn-text">Auto</span>
+                        </button>
+                        <button (click)="limpiarFiltros()" 
+                                [disabled]="loading"
+                                class="control-btn">
+                            <i class="ti ti-x"></i>
+                            <span class="btn-text">Limpiar</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <footer class="app-footer">
-                <div class="system-credit">Powered by GDI Systems</div>
-            </footer>
+            <!-- Separador -->
+            <div class="separator"></div>
+
+            <!-- Mensaje de error -->
+            <div *ngIf="error" class="error-message">
+                <i class="ti ti-alert-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+
+            <!-- Loading spinner -->
+            <div *ngIf="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <!-- Tabla con scroll -->
+            <div *ngIf="!loading && horariosFiltrados.length > 0" class="table-container">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead class="table-header">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre de la materia</th>
+                                <th>Grupo</th>
+                                <th>Inicio de clase</th>
+                                <th>Fin de clase</th>
+                                <th>Día</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            <tr *ngFor="let horario of horariosFiltrados" class="table-row">
+                                <td>{{ horario.id }}</td>
+                                <td class="font-medium">{{ horario.materia }}</td>
+                                <td>{{ horario.grupo }}</td>
+                                <td>{{ horario.inicio }}</td>
+                                <td>{{ horario.fin }}</td>
+                                <td>
+                                    <span class="day-badge">{{ horario.dia }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mensaje cuando no hay datos -->
+            <div *ngIf="!loading && horariosFiltrados.length === 0 && selectedDocente" class="empty-state">
+                <i class="ti ti-calendar-off"></i>
+                <p>No se encontraron horarios para el docente seleccionado</p>
+            </div>
+
+            <!-- Mensaje inicial -->
+            <div *ngIf="!loading && !selectedDocente" class="empty-state">
+                <i class="ti ti-user-search"></i>
+                <p>Selecciona un docente para ver su horario</p>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>

@@ -7,7 +7,7 @@ import { throwError, Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/login';
+  private apiUrl = 'http://localhost:3000/api/login'; // Tu API real
 
   constructor(private http: HttpClient) { }
 
@@ -58,5 +58,25 @@ export class AuthService {
 
   logout(): void {
     localStorage.clear();
+  }
+
+  getCurrentUser(): any {
+    const userId = localStorage.getItem('userId');
+    const email = localStorage.getItem('email');
+    
+    console.log('AuthService.getCurrentUser() - userId:', userId);
+    console.log('AuthService.getCurrentUser() - email:', email);
+    
+    if (userId && email) {
+      const user = {
+        id: userId,
+        email: email
+      };
+      console.log('AuthService.getCurrentUser() - usuario encontrado:', user);
+      return user;
+    }
+    
+    console.log('AuthService.getCurrentUser() - no hay usuario autenticado');
+    return null;
   }
 }
