@@ -110,7 +110,8 @@
                                     <input type="number" 
                                            [(ngModel)]="alumno['u' + unit.number]" 
                                            min="0" 
-                                           max="100"
+                                           max="10"
+                                           step="0.1"
                                            class="grade-input" />
                                 </td>
                                 <td class="font-medium">{{ calcularPromedio(alumno) }}</td>

@@ -355,11 +355,19 @@ export class GradesComponent implements OnInit, OnDestroy {
       console.log(`Unidad ${unit.number}: ${gradeValue}`);
       
       if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
+        // Validar que la calificación esté en el rango correcto (0-10)
+        const gradeNumber = parseFloat(gradeValue);
+        if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+          console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+          alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+          return;
+        }
+        
         const data = {
           student_id: parseInt(alumno.id),
           subject_id: parseInt(this.selectedSubject),
           unit_number: parseInt(unit.number),
-          grade: parseFloat(gradeValue)
+          grade: gradeNumber
         };
 
         console.log('Enviando datos:', data);
@@ -394,11 +402,19 @@ export class GradesComponent implements OnInit, OnDestroy {
       console.log(`Unidad ${unit.number}: ${gradeValue}, ID: ${gradeId}`);
       
       if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '' && gradeId) {
+        // Validar que la calificación esté en el rango correcto (0-10)
+        const gradeNumber = parseFloat(gradeValue);
+        if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+          console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+          alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+          return;
+        }
+        
         const data = {
           student_id: parseInt(alumno.id),
           subject_id: parseInt(this.selectedSubject),
           unit_number: parseInt(unit.number),
-          grade: parseFloat(gradeValue)
+          grade: gradeNumber
         };
 
         console.log('Enviando datos para actualizar:', data);
@@ -445,11 +461,19 @@ export class GradesComponent implements OnInit, OnDestroy {
         const gradeValue = (alumno as any)[`u${unit.number}`];
         
         if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '' && gradeValue > 0) {
+          // Validar que la calificación esté en el rango correcto (0-10)
+          const gradeNumber = parseFloat(gradeValue);
+          if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+            console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+            alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+            return;
+          }
+          
           const gradeData = {
             student_id: alumno.id,
             subject_id: this.selectedSubject,
             unit_number: unit.number,
-            grade: parseFloat(gradeValue)
+            grade: gradeNumber
           };
           
           this.gradesService.createGrade(gradeData).subscribe({
@@ -508,11 +532,19 @@ export class GradesComponent implements OnInit, OnDestroy {
         const existingGradeId = (alumno as any)[`gradeId${unit.number}`];
         
         if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '' && gradeValue > 0 && existingGradeId) {
+          // Validar que la calificación esté en el rango correcto (0-10)
+          const gradeNumber = parseFloat(gradeValue);
+          if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+            console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+            alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+            return;
+          }
+          
           const gradeData = {
             student_id: alumno.id,
             subject_id: this.selectedSubject,
             unit_number: unit.number,
-            grade: parseFloat(gradeValue)
+            grade: gradeNumber
           };
           
           console.log(`📤 Actualizando ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue} (ID: ${existingGradeId})`);
@@ -585,6 +617,14 @@ export class GradesComponent implements OnInit, OnDestroy {
 
   private intentarActualizarCalificacion(studentId: number, subjectId: number, unitNumber: number, gradeValue: number, savedCount: number, errorCount: number): void {
     console.log('🔄 Intentando actualizar calificación existente...');
+    
+    // Validar que la calificación esté en el rango correcto (0-10)
+    if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 10) {
+      console.error(`❌ Calificación inválida para actualizar: ${gradeValue}`);
+      alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+      errorCount++;
+      return;
+    }
     
     // Primero, obtener las calificaciones existentes para encontrar el ID
     this.gradesService.getGradesByStudentAndSubject(studentId, subjectId).subscribe({
