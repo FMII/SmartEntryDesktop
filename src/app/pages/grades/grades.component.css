@@ -89,6 +89,36 @@
     align-items: flex-end;
 }
 
+.students-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #F3F4F6;
+    border-radius: 8px;
+    border: 1px solid #D1D5DB;
+}
+
+.info-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-text i {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.filtered-indicator {
+    color: #059669;
+    font-weight: 600;
+    font-size: 11px;
+}
+
 .filter-label {
     font-size: 12px;
     font-weight: 600;
@@ -558,33 +588,6 @@
     transform: none;
 }
 
-.update-group-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.update-group-btn:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.update-group-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
 /* ===== BOTONES EN TABLA ===== */
 .action-buttons {
     display: flex;
@@ -593,19 +596,39 @@
 }
 
 .save-btn {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
+    background: linear-gradient(135deg, #262626, #1f1f1f) !important;
+    min-width: 120px;
+    justify-content: center;
 }
 
 .save-btn:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    background: linear-gradient(135deg, #1f1f1f, #171717) !important;
+    box-shadow: 0 2px 8px rgba(38, 38, 38, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.save-btn:disabled {
+    background: #9CA3AF !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .update-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    background: linear-gradient(135deg, #262626, #1f1f1f) !important;
+    min-width: 120px;
+    justify-content: center;
 }
 
 .update-btn:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+    background: linear-gradient(135deg, #1f1f1f, #171717) !important;
+    box-shadow: 0 2px 8px rgba(38, 38, 38, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.update-btn:disabled {
+    background: #9CA3AF !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }

@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { GradesService } from '../../services/grades.service';
 import { AuthService } from '../../services/auth.service';
-import { forkJoin, interval, Subscription } from 'rxjs';
+import { forkJoin, interval, Subscription, Observable, of } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
 @Component({
@@ -40,23 +40,13 @@ export class GradesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('GradesComponent ngOnInit iniciado');
     this.currentTeacher = this.authService.getCurrentUser();
-    console.log('Usuario actual:', this.currentTeacher);
-    console.log('localStorage userId:', localStorage.getItem('userId'));
-    console.log('localStorage email:', localStorage.getItem('email'));
-    console.log('localStorage token:', localStorage.getItem('token'));
     
     // Verificar autenticación
     if (!this.currentTeacher || !localStorage.getItem('token')) {
-      console.log('⚠️ No hay usuario autenticado o token expirado');
-      console.log('🔑 Token en localStorage:', localStorage.getItem('token'));
-      console.log('👤 Usuario en localStorage:', localStorage.getItem('userId'));
       
       // En lugar de mostrar alerta, vamos a intentar cargar datos de todos modos
-      console.log('🔄 Intentando cargar datos sin autenticación...');
     } else {
-      console.log('✅ Usuario autenticado correctamente');
     }
     
     this.cargarDatosDelProfesor();
@@ -68,7 +58,6 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   cargarDatosDelProfesor(): void {
-    console.log('🔍 Cargando datos del profesor:', this.currentTeacher?.id);
     
     if (!this.currentTeacher?.id) {
       console.error('❌ No hay profesor autenticado');
@@ -76,10 +65,8 @@ export class GradesComponent implements OnInit, OnDestroy {
     }
     
     // Cargar SOLO las asignaciones del profesor (sus grupos)
-    console.log('📡 Cargando asignaciones del profesor...');
     this.gradesService.getTeacherAssignments(this.currentTeacher.id).subscribe({
       next: (assignments) => {
-        console.log('✅ Asignaciones del profesor recibidas:', assignments);
         
         // Procesar asignaciones para obtener grupos únicos del profesor
         const teacherGroups = new Map();
@@ -113,18 +100,15 @@ export class GradesComponent implements OnInit, OnDestroy {
         
         // Asignar solo los grupos del profesor
         this.grupos = Array.from(teacherGroups.values());
-        console.log('✅ Grupos del profesor cargados:', this.grupos);
         
         // Si solo hay un grupo, seleccionarlo automáticamente
         if (this.grupos.length === 1) {
           this.selectedGroup = this.grupos[0].id;
-          console.log('✅ Grupo único seleccionado automáticamente:', this.selectedGroup);
           this.onGroupChange();
         }
         
         // Si no hay grupos, mostrar mensaje
         if (this.grupos.length === 0) {
-          console.log('⚠️ El profesor no tiene grupos asignados');
         }
       },
       error: (error) => {
@@ -138,15 +122,11 @@ export class GradesComponent implements OnInit, OnDestroy {
   onGroupChange(): void {
     if (!this.selectedGroup || !this.currentTeacher?.id) return;
     
-    console.log('🔄 Grupo seleccionado:', this.selectedGroup);
-    console.log('📚 Grupos disponibles:', this.grupos);
     
     const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
-    console.log('📦 Datos del grupo seleccionado:', selectedGroupData);
     
     if (selectedGroupData) {
       this.materias = selectedGroupData.subjects || [];
-      console.log('📖 Materias del grupo:', this.materias);
       
       // Determinar si mostrar el dropdown de materias
       this.showSubjectDropdown = this.materias && this.materias.length > 1;
@@ -154,11 +134,9 @@ export class GradesComponent implements OnInit, OnDestroy {
       if (this.showSubjectDropdown) {
         // Si hay múltiples materias, resetear la selección
         this.selectedSubject = '';
-        console.log('⚠️ Múltiples materias disponibles, selecciona una');
       } else if (this.materias && this.materias.length === 1) {
         // Si solo hay una materia, seleccionarla automáticamente
         this.selectedSubject = this.materias[0].id;
-        console.log('✅ Materia única seleccionada automáticamente:', this.selectedSubject);
         // Cargar datos automáticamente después de un pequeño delay
         setTimeout(() => {
           this.onSubjectChange();
@@ -177,8 +155,6 @@ export class GradesComponent implements OnInit, OnDestroy {
   onSubjectChange(): void {
     if (!this.selectedSubject) return;
     
-    console.log('🔄 Materia seleccionada:', this.selectedSubject);
-    console.log('📚 Materias disponibles:', this.materias);
     
     // Forzar la recarga de datos para esta materia
     this.cargarDatosParaMateria(this.selectedSubject);
@@ -187,15 +163,13 @@ export class GradesComponent implements OnInit, OnDestroy {
 
 
   cargarDatosParaMateria(subjectId: any): void {
-    console.log('📡 Cargando datos para materia:', subjectId);
     
     // Cargar configuración de unidades para la materia seleccionada
     this.gradesService.getSubjectUnits(Number(subjectId)).subscribe({
       next: (config) => {
-        console.log('✅ Configuración de materia cargada:', config);
+        
         this.selectedSubjectConfig = config;
         this.subjectUnits = config.units || [];
-        console.log('✅ Unidades configuradas:', this.subjectUnits);
         
         // Reinicializar las unidades dinámicas para todos los alumnos
         this.alumnos.forEach(alumno => {
@@ -225,23 +199,22 @@ export class GradesComponent implements OnInit, OnDestroy {
   cargarAlumnosDelGrupo(): void {
     if (!this.selectedGroup) return;
     
-    console.log('📡 Cargando alumnos del grupo:', this.selectedGroup);
     
     // Intentar obtener estudiantes reales de la API
     this.gradesService.getStudentsByGroup(this.selectedGroup).subscribe({
       next: (students) => {
-        console.log('✅ Alumnos recibidos del grupo específico:', students);
+        
         this.procesarAlumnos(students);
       },
       error: (error) => {
         console.log('⚠️ Error con endpoint específico, intentando con endpoint general...');
         this.gradesService.getAllStudents().subscribe({
           next: (allStudents) => {
-            console.log('✅ Todos los alumnos recibidos:', allStudents);
+            
             const groupStudents = allStudents.filter((student: any) => 
               student.group_id == this.selectedGroup || student.groups?.id == this.selectedGroup
             );
-            console.log('✅ Alumnos filtrados por grupo:', groupStudents);
+            
             this.procesarAlumnos(groupStudents);
           },
           error: (error2) => {
@@ -256,7 +229,6 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   private procesarAlumnos(students: any[]): void {
-    console.log('🔄 Procesando alumnos:', students);
     
     this.alumnos = students.map(studentAssignment => {
       // Extraer información del estudiante desde la estructura real de la API
@@ -277,20 +249,15 @@ export class GradesComponent implements OnInit, OnDestroy {
         alumno[`gradeId${unit.number}`] = null;
       });
       
-      console.log('✅ Alumno procesado:', alumno);
       return alumno;
     });
     
-    console.log('📊 Total de alumnos procesados:', this.alumnos.length);
     this.filtrarAlumnos();
   }
 
   cargarCalificacionesPorMateria(): void {
     if (!this.selectedSubject || this.alumnos.length === 0) return;
     
-    console.log('🔍 Cargando calificaciones para materia:', this.selectedSubject);
-    console.log('📚 Alumnos a procesar:', this.alumnos.length);
-    console.log('📖 Unidades disponibles:', this.subjectUnits);
     
     // Intentar cargar calificaciones reales de la API
     const requests = this.alumnos.map((alumno: any) =>
@@ -299,13 +266,11 @@ export class GradesComponent implements OnInit, OnDestroy {
     
     forkJoin(requests).subscribe({
       next: (gradesArr) => {
-        console.log('📦 Respuestas de calificaciones recibidas:', gradesArr);
         
         this.alumnos = this.alumnos.map((alumno: any, idx: number) => {
           const gradesResponse = gradesArr[idx] as any;
           const grades = gradesResponse?.data?.grades || gradesResponse?.grades || gradesResponse || [];
           
-          console.log(`📊 Calificaciones para alumno ${alumno.nombre}:`, grades);
           
           const updatedAlumno = {
             ...alumno,
@@ -320,13 +285,11 @@ export class GradesComponent implements OnInit, OnDestroy {
             if (unitGrade?.id) {
               updatedAlumno[`gradeId${unit.number}`] = unitGrade.id; // Guardar ID por unidad
             }
-            console.log(`📝 Unidad ${unit.number} para ${alumno.nombre}: ${updatedAlumno[`u${unit.number}`]} (ID: ${updatedAlumno[`gradeId${unit.number}`]})`);
           });
           
           return updatedAlumno;
         });
         
-        console.log('✅ Alumnos actualizados con calificaciones:', this.alumnos);
         this.filtrarAlumnos();
       },
       error: (error) => {
@@ -344,7 +307,6 @@ export class GradesComponent implements OnInit, OnDestroy {
           this.subjectUnits.forEach(unit => {
             updatedAlumno[`u${unit.number}`] = 0;
             updatedAlumno[`gradeId${unit.number}`] = null; // Inicializar ID como null
-            console.log(`📝 Unidad ${unit.number} para ${alumno.nombre}: 0 (inicializado)`);
           });
           
           return updatedAlumno;
@@ -356,11 +318,16 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   filtrarAlumnos(): void {
+    
     this.alumnosFiltrados = this.alumnos.filter(alumno => {
-      const matchesSearch = !this.searchQuery || 
-        alumno.nombre?.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const nombreCompleto = `${alumno.nombre || ''}`.toLowerCase();
+      const query = this.searchQuery.toLowerCase();
+      
+      const matchesSearch = !this.searchQuery || nombreCompleto.includes(query);
+      
       return matchesSearch;
     });
+    
   }
 
   calcularPromedio(alumno: any): number {
@@ -370,153 +337,84 @@ export class GradesComponent implements OnInit, OnDestroy {
       return total + (alumno[`u${unit.number}`] || 0);
     }, 0);
     
-    return Math.round(sum / this.subjectUnits.length);
+    const promedio = sum / this.subjectUnits.length;
+    return Math.round(promedio * 100) / 100; // Redondea a 2 decimales
   }
 
   guardarCalificaciones(alumno: any): void {
-    console.log('💾 Guardando calificaciones para:', alumno.nombre);
-    console.log('📚 Unidades a procesar:', this.subjectUnits);
-    
-    let savedCount = 0;
-    let errorCount = 0;
-    
-    // Guardar cada unidad por separado según la estructura de tu API
+    if (!this.selectedSubject) {
+      alert('Por favor selecciona una materia');
+      return;
+    }
+
+    console.log('Guardando calificaciones para:', alumno.nombre);
+    console.log('Materia seleccionada:', this.selectedSubject);
+
     this.subjectUnits.forEach(unit => {
-      const gradeValue = alumno[`u${unit.number}`] || 0;
-      const existingGradeId = alumno[`gradeId${unit.number}`];
+      const gradeValue = alumno[`u${unit.number}`];
+      console.log(`Unidad ${unit.number}: ${gradeValue}`);
       
-      console.log(`📝 Procesando unidad ${unit.number}: ${gradeValue} (ID existente: ${existingGradeId})`);
-      
-      if (gradeValue > 0) {
-        const gradeData = {
-          student_id: alumno.id,
-          subject_id: this.selectedSubject,
-          unit_number: unit.number,
-          grade: gradeValue
+      if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
+        const data = {
+          student_id: parseInt(alumno.id),
+          subject_id: parseInt(this.selectedSubject),
+          unit_number: parseInt(unit.number),
+          grade: parseFloat(gradeValue)
         };
-        
-        console.log('📤 Enviando datos a /api/grades:', gradeData);
-        
-        // Si ya existe una calificación, actualizar; si no, crear
-        if (existingGradeId) {
-          console.log(`🔄 Actualizando calificación existente ID: ${existingGradeId}`);
-          this.gradesService.updateGrade(existingGradeId, gradeData).subscribe({
-            next: (response) => {
-              console.log(`✅ Calificación actualizada para unidad ${unit.number}:`, response);
-              savedCount++;
-              
-              // Si es la última unidad, mostrar resumen
-              if (savedCount + errorCount === this.subjectUnits.length) {
-                this.mostrarResumenGuardado(alumno.nombre, savedCount, errorCount);
-              }
-            },
-            error: (error) => {
-              console.error(`❌ Error al actualizar calificación para unidad ${unit.number}:`, error);
-              errorCount++;
-              
-              // Si es la última unidad, mostrar resumen
-              if (savedCount + errorCount === this.subjectUnits.length) {
-                this.mostrarResumenGuardado(alumno.nombre, savedCount, errorCount);
-              }
-            }
-          });
-        } else {
-          console.log(`➕ Creando nueva calificación`);
-          this.gradesService.createGrade(gradeData).subscribe({
-            next: (response) => {
-              console.log(`✅ Calificación creada para unidad ${unit.number}:`, response);
-              savedCount++;
-              
-              // Si es la última unidad, mostrar resumen
-              if (savedCount + errorCount === this.subjectUnits.length) {
-                this.mostrarResumenGuardado(alumno.nombre, savedCount, errorCount);
-              }
-            },
-            error: (error) => {
-              console.error(`❌ Error al crear calificación para unidad ${unit.number}:`, error);
-              
-              // Si ya existe, buscar la calificación existente y actualizarla
-              if (error.error?.msg?.includes('Ya existe') || error.status === 500) {
-                console.log('⚠️ La calificación ya existe, buscando ID existente...');
-                this.intentarActualizarCalificacion(alumno.id, this.selectedSubject, unit.number, gradeValue, savedCount, errorCount);
-              } else {
-                errorCount++;
-                // Si es la última unidad, mostrar resumen
-                if (savedCount + errorCount === this.subjectUnits.length) {
-                  this.mostrarResumenGuardado(alumno.nombre, savedCount, errorCount);
-                }
-              }
-            }
-          });
-        }
-      } else {
-        console.log(`⏭️ Saltando unidad ${unit.number} (valor 0)`);
-        // Si es la última unidad, mostrar resumen
-        if (savedCount + errorCount + 1 === this.subjectUnits.length) {
-          this.mostrarResumenGuardado(alumno.nombre, savedCount, errorCount);
-        }
+
+        console.log('Enviando datos:', data);
+
+        this.gradesService.createGrade(data).subscribe({
+          next: (response) => {
+            console.log('✅ Calificación guardada:', response);
+            alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unit.number}`);
+          },
+          error: (error) => {
+            console.error('❌ Error al guardar:', error);
+            alert(`Error al guardar calificación: ${error.message}`);
+          }
+        });
       }
     });
   }
 
   actualizarCalificaciones(alumno: any): void {
-    console.log('🔄 Actualizando calificaciones para:', alumno.nombre);
-    console.log('📚 Unidades a procesar:', this.subjectUnits);
-    
-    let updatedCount = 0;
-    let errorCount = 0;
-    
-    // Actualizar solo calificaciones que ya existen
+    if (!this.selectedSubject) {
+      alert('Por favor selecciona una materia');
+      return;
+    }
+
+    console.log('Actualizando calificaciones para:', alumno.nombre);
+    console.log('Materia seleccionada:', this.selectedSubject);
+
     this.subjectUnits.forEach(unit => {
-      const gradeValue = alumno[`u${unit.number}`] || 0;
-      const existingGradeId = alumno[`gradeId${unit.number}`];
+      const gradeValue = alumno[`u${unit.number}`];
+      const gradeId = alumno[`gradeId${unit.number}`];
       
-      console.log(`📝 Procesando unidad ${unit.number}: ${gradeValue} (ID existente: ${existingGradeId})`);
+      console.log(`Unidad ${unit.number}: ${gradeValue}, ID: ${gradeId}`);
       
-      if (gradeValue > 0 && existingGradeId) {
-        const gradeData = {
-          student_id: alumno.id,
-          subject_id: this.selectedSubject,
-          unit_number: unit.number,
-          grade: gradeValue
+      if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '' && gradeId) {
+        const data = {
+          student_id: parseInt(alumno.id),
+          subject_id: parseInt(this.selectedSubject),
+          unit_number: parseInt(unit.number),
+          grade: parseFloat(gradeValue)
         };
-        
-        console.log('📤 Actualizando datos a /api/grades:', gradeData);
-        
-        this.gradesService.updateGrade(existingGradeId, gradeData).subscribe({
+
+        console.log('Enviando datos para actualizar:', data);
+
+        this.gradesService.updateGrade(parseInt(gradeId), data).subscribe({
           next: (response) => {
-            console.log(`✅ Calificación actualizada para unidad ${unit.number}:`, response);
-            updatedCount++;
-            
-            // Si es la última unidad, mostrar resumen
-            if (updatedCount + errorCount === this.subjectUnits.length) {
-              this.mostrarResumenActualizado(alumno.nombre, updatedCount, errorCount);
-            }
+            console.log('✅ Calificación actualizada:', response);
+            alert(`Calificación actualizada para ${alumno.nombre} - Unidad ${unit.number}`);
           },
           error: (error) => {
-            console.error(`❌ Error al actualizar calificación para unidad ${unit.number}:`, error);
-            errorCount++;
-            
-            // Si es la última unidad, mostrar resumen
-            if (updatedCount + errorCount === this.subjectUnits.length) {
-              this.mostrarResumenActualizado(alumno.nombre, updatedCount, errorCount);
-            }
+            console.error('❌ Error al actualizar:', error);
+            alert(`Error al actualizar calificación: ${error.message}`);
           }
         });
-      } else if (gradeValue > 0 && !existingGradeId) {
-        console.log(`⚠️ No se puede actualizar unidad ${unit.number}: No existe ID de calificación`);
-        errorCount++;
-        
-        // Si es la última unidad, mostrar resumen
-        if (updatedCount + errorCount === this.subjectUnits.length) {
-          this.mostrarResumenActualizado(alumno.nombre, updatedCount, errorCount);
-        }
       } else {
-        console.log(`⏭️ Saltando unidad ${unit.number} (valor 0 o sin ID)`);
-        // Si es la última unidad, mostrar resumen
-        if (updatedCount + errorCount + 1 === this.subjectUnits.length) {
-          this.mostrarResumenActualizado(alumno.nombre, updatedCount, errorCount);
-        }
+        console.log(`No hay calificación para actualizar en unidad ${unit.number}`);
       }
     });
   }
@@ -773,20 +671,35 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   recargarDatos(): void {
-    console.log('Recargando datos...', {
+    console.log('🔄 Recargando datos desde la API...');
+    console.log('📊 Estado actual:', {
       selectedGroup: this.selectedGroup,
       selectedSubject: this.selectedSubject,
       currentTeacher: this.currentTeacher
     });
     
+    // Limpiar datos actuales
+    this.alumnos = [];
+    this.alumnosFiltrados = [];
+    this.searchQuery = '';
+    
     if (this.selectedGroup && this.selectedSubject) {
-      console.log('Cargando calificaciones por materia...');
-      this.cargarCalificacionesPorMateria();
+      console.log('✅ Recargando datos para grupo y materia seleccionados...');
+      // Recargar alumnos del grupo
+      this.cargarAlumnosDelGrupo();
+      // Recargar calificaciones
+      setTimeout(() => {
+        this.cargarCalificacionesPorMateria();
+      }, 500);
+    } else if (this.selectedGroup) {
+      console.log('✅ Recargando datos para grupo seleccionado...');
+      this.cargarAlumnosDelGrupo();
     } else {
-      console.log('No se pueden recargar datos: faltan grupo o materia seleccionada');
-      // Recargar datos del profesor si no hay selección
+      console.log('✅ Recargando todos los datos del profesor...');
       this.cargarDatosDelProfesor();
     }
+    
+    console.log('✅ Recarga completada');
   }
 
   changeTab(tab: string): void {
@@ -796,5 +709,35 @@ export class GradesComponent implements OnInit, OnDestroy {
   getNombreGrupo(alumno: any): string {
     const grupo = this.grupos.find(g => g.id == this.selectedGroup);
     return grupo?.name || this.selectedGroup || '';
+  }
+
+  getNumeroAlumnos(): number {
+    return this.alumnos.length;
+  }
+
+  getNumeroAlumnosFiltrados(): number {
+    return this.alumnosFiltrados.length;
+  }
+
+  // Obtener información detallada del grupo desde el API
+  getGroupInfo(): void {
+    if (!this.selectedGroup) return;
+    
+    this.gradesService.getStudentsByGroupDetailed(parseInt(this.selectedGroup)).subscribe({
+      next: (data) => {
+        console.log('📊 Información del grupo:', data);
+        console.log(`👥 Total de estudiantes en el grupo: ${data.totalStudents}`);
+        console.log(`📚 Grupo: ${data.group.name}`);
+      },
+      error: (error) => {
+        console.error('❌ Error al obtener información del grupo:', error);
+      }
+    });
+  }
+
+  // Obtener solo el conteo de estudiantes
+  getStudentCount(): Observable<number> {
+    if (!this.selectedGroup) return of(0);
+    return this.gradesService.getStudentCountByGroup(parseInt(this.selectedGroup));
   }
 }

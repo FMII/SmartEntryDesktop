@@ -66,10 +66,35 @@ export class DashboardService {
 
   // Obtener asistencias de alumnos por grupo y rango de fechas (API real)
   getAttendanceByGroup(groupId: number, startDate: string, endDate: string): Observable<any[]> {
-    return this.http.get<any>(`${this.API_URL}/graphics/attendance-by-group/${groupId}`, {
-      params: { startDate, endDate }
+    console.log('📡 Llamando a getAttendanceByGroup con:', { groupId, startDate, endDate });
+    
+    return this.http.get<any>(`${this.API_URL}/attendance`, {
+      params: { 
+        group_id: groupId.toString(),
+        start_date: startDate,
+        end_date: endDate
+      }
     }).pipe(
-      map((res: any) => Array.isArray(res.data) ? res.data : [])
+      map((res: any) => {
+        console.log('📡 Respuesta raw de attendance:', res);
+        
+        let attendanceData: any[] = [];
+        
+        if (res && typeof res === 'object') {
+          if (res.data && Array.isArray(res.data)) {
+            attendanceData = res.data;
+          } else if (Array.isArray(res)) {
+            attendanceData = res;
+          }
+        }
+        
+        console.log('✅ Datos de asistencia procesados:', attendanceData);
+        return attendanceData;
+      }),
+      catchError((error) => {
+        console.error('❌ Error al obtener asistencia por grupo:', error);
+        return of([]);
+      })
     );
   }
 
@@ -128,17 +153,20 @@ export class DashboardService {
         
         // Filtrar solo los estudiantes del grupo especificado
         const studentsInGroup = studentGroups.filter((sg: any) => 
-          sg.group_id === groupId || sg.groups?.id === groupId
+          sg.group_id === groupId
         );
         
-        // Extraer información de los estudiantes
+        // Extraer información de los estudiantes según la estructura real de la API
         const students = studentsInGroup.map((sg: any) => {
-          const student = sg.student || sg.students || sg;
+          // Según la estructura que me mostraste: { "student_id": 15, "users": { "id": 15, "first_name": "Juan", "last_name": "Pérez" } }
+          const user = sg.users;
           return {
-            id: student.id,
-            first_name: student.first_name,
-            last_name: student.last_name,
-            email: student.email
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            student_id: sg.student_id,
+            group_id: sg.group_id
           };
         });
         

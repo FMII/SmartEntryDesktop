@@ -155,7 +155,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
         
         // Asignar grupos del profesor
         this.grupos = Array.isArray(grupos) ? grupos : [];
-        
+          
         // Asignar materias del profesor
         this.materias = Array.isArray(materias) ? materias : [];
         
@@ -207,12 +207,12 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
     // Cargar todos los datos en paralelo
     forkJoin([
-      this.attendanceHistoryService.getHistorialAsistencia(
-        filtros.grupoId,
-        filtros.materiaId,
-        filtros.fechaInicio,
-        filtros.fechaFin,
-        filtros.search
+    this.attendanceHistoryService.getHistorialAsistencia(
+      filtros.grupoId,
+      filtros.materiaId,
+      filtros.fechaInicio,
+      filtros.fechaFin,
+      filtros.search
       ),
       this.attendanceHistoryService.getAlumnosDelGrupo(this.selectedGroup),
       this.attendanceHistoryService.getMaterias(),
@@ -259,7 +259,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       // Solo resetear a página 1 si es una carga inicial o cambio de filtros
       // NO resetear si es una actualización de asistencia
       if (this.currentPage === 1 || this.currentPage > Math.ceil(this.totalItems / this.itemsPerPage)) {
-        this.currentPage = 1;
+      this.currentPage = 1;
       }
       
       console.log('📊 Registros procesados:', this.registros.length, 'Página actual:', this.currentPage);
@@ -407,9 +407,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     // TEMPORAL: Deshabilitar completamente el auto-refresh
     console.log('🚫 Auto-refresh completamente deshabilitado');
     this.autoRefreshEnabled = false;
-    if (this.autoRefreshInterval) {
-      clearInterval(this.autoRefreshInterval);
-      this.autoRefreshInterval = null;
+      if (this.autoRefreshInterval) {
+        clearInterval(this.autoRefreshInterval);
+        this.autoRefreshInterval = null;
     }
     this.cdr.markForCheck();
     

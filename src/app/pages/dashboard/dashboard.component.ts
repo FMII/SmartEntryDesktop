@@ -336,7 +336,15 @@ export class DashboardComponent implements OnInit {
 
   recargarDatos(): void {
     console.log('🔄 Recargando datos del dashboard...');
+    
+    // Limpiar datos actuales
+    this.registros = [];
+    this.ausenciasPorGrupo = [];
+    
+    // Recargar datos
     this.cargarDatos(); // Recargar gráfica
     this.cargarTabla(this.fechaFiltro); // Recargar tabla
+    
+    console.log('✅ Datos recargados desde la API');
   }
 }

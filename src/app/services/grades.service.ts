@@ -20,6 +20,13 @@ export class GradesService {
       error: error.error
     });
     
+    // Log detallado del error del backend
+    console.error('🔍 Error completo del backend:', error.error);
+    if (error.error && typeof error.error === 'object') {
+      console.error('📝 Mensaje del backend:', error.error.msg || error.error.message || 'Sin mensaje');
+      console.error('📊 Datos del error:', error.error.data);
+    }
+    
     if (error.error instanceof ErrorEvent) {
       errorMessage = `Error del cliente: ${error.error.message}`;
     } else {
@@ -52,14 +59,9 @@ export class GradesService {
 
   // Obtener todos los grupos
   getGroups(): Observable<any[]> {
-    console.log('📡 GET /api/groups/list');
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
-    console.log('🔑 Token completo:', localStorage.getItem('token'));
-    console.log('🌐 URL completa:', `${this.apiUrl}/groups/list`);
     return this.http.get<any>(`${this.apiUrl}/groups/list`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta grupos:', response);
         // Manejar la estructura real de la API: { status, data, msg }
         const groups = response?.data || [];
         return Array.isArray(groups) ? groups : [];
@@ -71,12 +73,9 @@ export class GradesService {
 
   // Obtener grupos (endpoint alternativo)
   getGroupsAlternative(): Observable<any[]> {
-    console.log('📡 GET /api/groups/');
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
     return this.http.get<any>(`${this.apiUrl}/groups/`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta grupos (alternativo):', response);
         const groups = response?.data || [];
         return Array.isArray(groups) ? groups : [];
       }),
@@ -87,28 +86,19 @@ export class GradesService {
 
   // Obtener alumnos de un grupo
   getStudentsByGroup(groupId: number): Observable<any[]> {
-    console.log('📡 GET /api/student-groups/ (todos) y filtrar por grupo');
-    console.log('🌐 URL completa:', `${this.apiUrl}/student-groups/`);
-    console.log('🔍 Grupo ID a filtrar:', groupId);
     return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta todas las asignaciones:', response);
         // Manejar la estructura real de la API: { status, data, msg }
         const allAssignments = response?.data || [];
         const assignments = Array.isArray(allAssignments) ? allAssignments : [];
         
-        console.log('📦 Total de asignaciones encontradas:', assignments.length);
-        console.log('📦 Ejemplo de asignación:', assignments[0]);
-        
         // Filtrar por grupo
         const groupAssignments = assignments.filter((assignment: any) => {
           const matchesGroup = assignment.group_id === groupId;
-          console.log(`🔍 Asignación ${assignment.id}: group_id=${assignment.group_id}, matches=${matchesGroup}`);
           return matchesGroup;
         });
         
-        console.log('📦 Asignaciones filtradas por grupo:', groupAssignments);
         return groupAssignments;
       }),
       shareReplay(1),
@@ -118,11 +108,9 @@ export class GradesService {
 
   // Obtener todos los estudiantes (fallback)
   getAllStudents(): Observable<any[]> {
-    console.log('📡 GET /api/student-groups/');
     return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta todos los estudiantes:', response);
         const allStudents = response?.data || [];
         return Array.isArray(allStudents) ? allStudents : [];
       }),
@@ -136,7 +124,6 @@ export class GradesService {
     return this.http.get<any>(`${this.apiUrl}/grades/student/${studentId}`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta calificaciones por estudiante:', response);
         // Manejar la estructura real de la API
         const grades = response?.data?.grades || [];
         return Array.isArray(grades) ? grades : [];
@@ -149,7 +136,12 @@ export class GradesService {
   // Crear calificación
   createGrade(data: any): Observable<any> {
     console.log('📤 POST /api/grades con datos:', data);
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
+    console.log('📊 Tipos de datos:', {
+      student_id: typeof data.student_id,
+      subject_id: typeof data.subject_id,
+      unit_number: typeof data.unit_number,
+      grade: typeof data.grade
+    });
     return this.http.post(`${this.apiUrl}/grades`, data).pipe(
       timeout(10000),
       map(response => {
@@ -163,7 +155,14 @@ export class GradesService {
   // Actualizar calificación existente
   updateGrade(gradeId: number, data: any): Observable<any> {
     console.log('📤 PUT /api/grades/:gradeId con datos:', data);
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
+    console.log('🔢 Grade ID:', gradeId);
+    console.log('📊 Tipos de datos:', {
+      gradeId: typeof gradeId,
+      student_id: typeof data.student_id,
+      subject_id: typeof data.subject_id,
+      unit_number: typeof data.unit_number,
+      grade: typeof data.grade
+    });
     return this.http.put(`${this.apiUrl}/grades/${gradeId}`, data).pipe(
       timeout(10000),
       map(response => {
@@ -179,18 +178,25 @@ export class GradesService {
     return this.getStudentsByGroup(groupId);
   }
 
-  // Obtener materias y grupos asignados a un profesor
+  // Obtener asignaciones del profesor
   getTeacherAssignments(teacherId: number): Observable<any[]> {
-    console.log('📡 GET /api/teacher-subject-groups/teacher/:teacherId para profesor:', teacherId);
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
     return this.http.get<any>(`${this.apiUrl}/teacher-subject-groups/teacher/${teacherId}`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta asignaciones:', response);
-        const assignments = response?.data || [];
-        console.log('📦 Asignaciones procesadas:', assignments);
-        console.log('📦 Ejemplo de asignación:', assignments[0]);
-        return Array.isArray(assignments) ? assignments : [];
+        // Manejar la estructura real de la API: { status, data: { teacherSubjectGroups: [...] } }
+        let assignments: any[] = [];
+        
+        if (response && typeof response === 'object') {
+          if (response.data && response.data.teacherSubjectGroups && Array.isArray(response.data.teacherSubjectGroups)) {
+            assignments = response.data.teacherSubjectGroups;
+          } else if (response.data && Array.isArray(response.data)) {
+            assignments = response.data;
+          } else if (Array.isArray(response)) {
+            assignments = response;
+          }
+        }
+        
+        return assignments;
       }),
       shareReplay(1),
       catchError(this.handleError)
@@ -215,7 +221,6 @@ export class GradesService {
     return this.http.get<any>(`${this.apiUrl}/grades/student/${studentId}/${subjectId}`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta calificaciones por estudiante y materia:', response);
         // Manejar la estructura real de la API
         const grades = response?.data?.grades || [];
         return Array.isArray(grades) ? grades : [];
@@ -227,15 +232,9 @@ export class GradesService {
 
   // Obtener configuración de unidades para una materia
   getSubjectUnits(subjectId: number): Observable<any> {
-    console.log('📡 GET /api/subjects/:subjectId para unidades');
-    console.log('🔑 Token disponible:', !!localStorage.getItem('token'));
-    console.log('🌐 URL completa:', `${this.apiUrl}/subjects/${subjectId}`);
-    console.log('🔢 Subject ID:', subjectId);
-    
     return this.http.get<any>(`${this.apiUrl}/subjects/${subjectId}`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta configuración de materia:', response);
         const subjectData = response?.data || {};
         const subjectName = subjectData?.name?.toLowerCase() || '';
         
@@ -253,7 +252,6 @@ export class GradesService {
           units = [1, 2, 3, 4, 5].map(number => ({ number, name: `Unidad ${number}` }));
         }
         
-        console.log('✅ Unidades configuradas para', subjectName, ':', units);
         return { units };
       }),
       shareReplay(1),
@@ -276,11 +274,9 @@ export class GradesService {
 
   // Obtener calificaciones por materia
   getGradesBySubject(subjectId: number): Observable<any> {
-    console.log('📡 GET /api/grades/subject/:subjectId');
     return this.http.get<any>(`${this.apiUrl}/grades/subject/${subjectId}`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta calificaciones por materia:', response);
         return response;
       }),
       catchError((error: any) => {
@@ -289,4 +285,28 @@ export class GradesService {
       })
     );
   }
-} 
+
+  // Obtener información detallada de estudiantes por grupo
+  getStudentsByGroupDetailed(groupId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/student-groups/${groupId}/students`).pipe(
+      timeout(10000),
+      map(response => {
+        const data = response?.data || {};
+        return {
+          group: data.group || {},
+          students: data.students || [],
+          totalStudents: data.students ? data.students.length : 0
+        };
+      }),
+      shareReplay(1),
+      catchError(this.handleError)
+    );
+  }
+
+  // Obtener solo el conteo de estudiantes por grupo
+  getStudentCountByGroup(groupId: number): Observable<number> {
+    return this.getStudentsByGroupDetailed(groupId).pipe(
+      map(data => data.totalStudents)
+    );
+  }
+}
