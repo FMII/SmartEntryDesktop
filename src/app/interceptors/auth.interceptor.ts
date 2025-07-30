@@ -30,12 +30,22 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 || error.status === 403) {
+      console.log('❌ Interceptor - Error capturado:', {
+        status: error.status,
+        url: req.url,
+        message: error.message
+      });
+      
+      // Solo cerrar sesión automáticamente para errores de autenticación críticos
+      if (error.status === 401) {
+        console.log('🚪 Interceptor - Error 401 detectado, cerrando sesión automáticamente');
         localStorage.removeItem('token');
-        // Usar createUrlTree para mejor manejo de rutas
         router.navigateByUrl('/login').then(() => {
-          window.location.reload(); // Necesario en Electron para limpiar estados
+          window.location.reload();
         });
+      } else if (error.status === 403) {
+        console.log('⚠️ Interceptor - Error 403 detectado, pero NO cerrando sesión (permisos insuficientes)');
+        console.log('🔍 URL que causó el error:', req.url);
       }
       return throwError(() => error);
     })

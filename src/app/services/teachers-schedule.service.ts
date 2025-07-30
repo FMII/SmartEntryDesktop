@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, timeout, shareReplay, map } from 'rxjs/operators';
+import { AuthService } from './auth.service';
 
 export interface Teacher {
   id: number;
@@ -50,7 +51,10 @@ export class TeachersScheduleService {
   private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   private getCacheKey(endpoint: string, params?: any): string {
     return `${endpoint}${params ? JSON.stringify(params) : ''}`;
@@ -135,15 +139,39 @@ export class TeachersScheduleService {
       return of(cached.data);
     }
 
-    return this.http.get<Teacher[]>(`${this.apiUrl}/users/roles/3`).pipe(
-      timeout(10000),
-      map(response => {
-        this.cache.set(cacheKey, { data: response, timestamp: Date.now() });
-        return response;
-      }),
-      shareReplay(1),
-      catchError(this.handleError)
-    );
+    // Intentar obtener profesores del endpoint de asignaciones del profesor actual
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser?.id) {
+      console.log('👤 Obteniendo profesores usando asignaciones del usuario actual');
+      return this.getTeacherAssignments(currentUser.id).pipe(
+        map(assignments => {
+          // Extraer información de profesores de las asignaciones
+          const teachers = new Map<number, Teacher>();
+          
+          assignments.forEach((assignment: any) => {
+            if (assignment.teacher_id && assignment.teacher_name) {
+              teachers.set(assignment.teacher_id, {
+                id: assignment.teacher_id,
+                name: assignment.teacher_name,
+                email: assignment.teacher_email || ''
+              });
+            }
+          });
+          
+          const teachersArray = Array.from(teachers.values());
+          this.cache.set(cacheKey, { data: teachersArray, timestamp: Date.now() });
+          return teachersArray;
+        }),
+        catchError(error => {
+          console.log('⚠️ Error obteniendo profesores, devolviendo array vacío');
+          return of([]);
+        })
+      );
+    }
+
+    // Fallback: devolver array vacío si no hay usuario autenticado
+    console.log('⚠️ No hay usuario autenticado, devolviendo array vacío de profesores');
+    return of([]);
   }
 
   getTeacherSchedule(teacherId: number): Observable<Schedule[]> {

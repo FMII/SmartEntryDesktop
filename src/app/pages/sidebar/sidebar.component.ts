@@ -15,13 +15,17 @@ import { Router } from '@angular/router';
 export class SidebarComponent {
   isSidebarCollapsed = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router) {
+    console.log('🏗️ SidebarComponent constructor ejecutado');
+  }
 
   toggleSidebar() {
+    console.log('🔄 Toggle sidebar ejecutado');
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   logout() {
+    console.log('🚪 Logout ejecutado desde sidebar');
     this.auth.logout();
     this.router.navigate(['/login']);
   }

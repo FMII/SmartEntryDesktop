@@ -460,7 +460,7 @@ export class GradesComponent implements OnInit, OnDestroy {
       this.subjectUnits.forEach(unit => {
         const gradeValue = (alumno as any)[`u${unit.number}`];
         
-        if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '' && gradeValue > 0) {
+        if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '') {
           // Validar que la calificación esté en el rango correcto (0-10)
           const gradeNumber = parseFloat(gradeValue);
           if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
@@ -531,7 +531,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         const gradeValue = (alumno as any)[`u${unit.number}`];
         const existingGradeId = (alumno as any)[`gradeId${unit.number}`];
         
-        if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '' && gradeValue > 0 && existingGradeId) {
+        if (gradeValue !== null && gradeValue !== undefined && gradeValue !== '' && existingGradeId) {
           // Validar que la calificación esté en el rango correcto (0-10)
           const gradeNumber = parseFloat(gradeValue);
           if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
