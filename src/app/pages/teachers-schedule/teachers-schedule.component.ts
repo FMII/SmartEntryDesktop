@@ -15,12 +15,11 @@ import { Subject, forkJoin, takeUntil, debounceTime, distinctUntilChanged, final
 })
 export class TeachersScheduleComponent implements OnInit, OnDestroy {
   selectedGroup: string = '';
-  selectedDocente: string = '';
+  selectedSubject: string = '';
   grupos: any[] = [];
-  docentes: any[] = [];
+  materias: any[] = [];
   horarios: any[] = [];
   horariosFiltrados: any[] = [];
-  materias: any[] = [];
   schedules: any[] = [];
   
   // Estados
@@ -95,7 +94,6 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     // Cargar asignaciones del profesor y otros datos
     forkJoin({
       assignments: this.scheduleService.getTeacherAssignments(currentTeacher.id),
-      docentes: this.scheduleService.getTeachers(),
       materias: this.scheduleService.getSubjects()
     }).pipe(
       takeUntil(this.destroy$)
@@ -127,14 +125,45 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
             }
           });
           
-          // Asignar solo los grupos del profesor
-          this.grupos = Array.from(teacherGroups.values());
-        }
-        
-        this.docentes = data.docentes || [];
-        this.materias = data.materias || [];
+                  // Asignar solo los grupos del profesor
+        this.grupos = Array.from(teacherGroups.values());
+      }
+      
+      // Obtener todas las materias disponibles
+      let allMaterias: any[] = [];
+      if (data.materias && Array.isArray(data.materias)) {
+        allMaterias = data.materias;
+      } else if (data.materias && typeof data.materias === 'object' && 'data' in data.materias && Array.isArray((data.materias as any).data)) {
+        allMaterias = (data.materias as any).data;
+      }
+
+      // Filtrar materias basándose en las asignaciones del profesor
+      const teacherSubjects = new Map();
+      if (data.assignments && Array.isArray(data.assignments)) {
+        data.assignments.forEach((assignment: any) => {
+          const subjectId = assignment.subject_id || assignment.subjects?.id;
+          const subjectName = assignment.subjects?.name || assignment.subject_name;
+          
+          console.log('📚 Procesando materia del profesor:', { subjectId, subjectName });
+          
+          if (subjectId && subjectName) {
+            if (!teacherSubjects.has(subjectId)) {
+              teacherSubjects.set(subjectId, {
+                id: subjectId,
+                name: subjectName
+              });
+            }
+          }
+        });
+      }
+      
+      // Asignar solo las materias del profesor
+      this.materias = Array.from(teacherSubjects.values());
         
         console.log('✅ Grupos del profesor en horario:', this.grupos);
+        console.log('✅ Materias disponibles:', this.materias);
+        console.log('🔍 Tipo de grupos:', typeof this.grupos, Array.isArray(this.grupos));
+        console.log('🔍 Tipo de materias:', typeof this.materias, Array.isArray(this.materias));
         
         this.loading = false;
         this.cdr.markForCheck();
@@ -147,11 +176,19 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     });
   }
 
-  cargarHorariosCompletos(): void {
+    cargarHorariosCompletos(): void {
+    console.log('Cargando horarios completos...');
     this.loading = true;
     this.error = '';
 
-    this.scheduleService.getCompleteSchedule(Number(this.selectedDocente))
+    const currentTeacher = this.authService.getCurrentUser();
+    if (!currentTeacher?.id) {
+      console.error('No hay profesor autenticado');
+      this.loading = false;
+      return;
+    }
+
+    this.scheduleService.getCompleteScheduleData(currentTeacher.id, Number(this.selectedGroup), Number(this.selectedSubject))
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -159,19 +196,21 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: (response) => {
+        next: (response: any) => {
           if (response && response.schedules) {
             this.horarios = response.schedules || [];
-            this.grupos = response.groups || [];
-            this.materias = response.subjects || [];
+            // No sobrescribir grupos y materias aquí, mantener los originales
+            // this.grupos = response.groups || [];
+            // this.materias = response.subjects || [];
           } else {
             this.horarios = [];
-            this.grupos = [];
-            this.materias = [];
+            // No limpiar grupos y materias aquí
+            // this.grupos = [];
+            // this.materias = [];
           }
           this.filtrarHorarios();
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error al cargar horarios completos:', error);
           this.error = error.message || 'Error al cargar los horarios';
           this.horarios = [];
@@ -185,7 +224,11 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     let filtrados = [...this.horarios];
     
     if (this.selectedGroup) {
-      filtrados = filtrados.filter(h => h.group_id == this.selectedGroup);
+      filtrados = filtrados.filter(h => h.group_id == Number(this.selectedGroup));
+    }
+
+    if (this.selectedSubject) {
+      filtrados = filtrados.filter(h => h.subject_id == Number(this.selectedSubject));
     }
 
     // Enriquecer con nombres de grupo y materia
@@ -199,12 +242,25 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     }));
   }
 
-  onDocenteChange(): void {
-    this.cargarHorariosCompletos();
+  onSubjectChange(): void {
+    if (this.selectedSubject) {
+      this.cargarHorariosCompletos();
+    } else {
+      this.filtrarHorarios();
+    }
+    this.cdr.markForCheck();
   }
 
   onGroupChange(): void {
-    this.filtrarHorarios();
+    this.selectedSubject = ''; // Limpiar materia al cambiar grupo
+    
+    // Recargar datos para obtener materias específicas del grupo seleccionado
+    if (this.selectedGroup) {
+      this.cargarDatosIniciales();
+      this.cargarHorariosCompletos();
+    } else {
+      this.filtrarHorarios();
+    }
     this.cdr.markForCheck();
   }
 
@@ -220,14 +276,14 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
 
   recargarDatos(): void {
     console.log('Recargando datos en horario...', {
-      selectedDocente: this.selectedDocente,
       selectedGroup: this.selectedGroup,
+      selectedSubject: this.selectedSubject,
       currentUser: this.authService.getCurrentUser()
     });
     
     this.scheduleService.clearAllCache();
     this.cargarDatosIniciales();
-    if (this.selectedDocente) {
+    if (this.selectedGroup || this.selectedSubject) {
       this.cargarHorariosCompletos();
     }
   }
@@ -235,7 +291,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   private setupAutoRefresh(): void {
     this.clearAutoRefresh();
     this.autoRefreshInterval = setInterval(() => {
-      if (this.selectedDocente) {
+      if (this.selectedGroup || this.selectedSubject) {
         this.cargarHorariosCompletos();
       }
     }, 30000); // 30 segundos
@@ -314,7 +370,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
 
   limpiarFiltros(): void {
     this.selectedGroup = '';
-    this.selectedDocente = '';
+    this.selectedSubject = '';
     this.horarios = [];
     this.horariosFiltrados = [];
     this.error = null;

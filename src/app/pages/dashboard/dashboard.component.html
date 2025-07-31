@@ -64,6 +64,12 @@
                             </select>
                         </div>
                     </div>
+                    
+                    <!-- Indicador de filtro por fecha -->
+                    <div *ngIf="fechaFiltro && fechaFiltro.trim() !== ''" class="date-filter-indicator">
+                        <i class="ti ti-calendar"></i>
+                        <span>Mostrando solo alumnos del {{ fechaFiltro | date:'dd/MM/yyyy' }}</span>
+                    </div>
 
                     <!-- Tabla con scroll -->
                     <div class="table-wrapper">

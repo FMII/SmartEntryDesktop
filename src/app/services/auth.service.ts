@@ -7,7 +7,7 @@ import { throwError, Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/login'; // Tu API real
+  private apiUrl = 'http://localhost:3000/api/academic/login'; // Tu API real
 
   constructor(private http: HttpClient) { }
 

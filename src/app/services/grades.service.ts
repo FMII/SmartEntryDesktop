@@ -5,7 +5,7 @@ import { catchError, timeout, shareReplay, map, switchMap } from 'rxjs/operators
 
 @Injectable({ providedIn: 'root' })
 export class GradesService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = 'http://localhost:3000/api/academic';
 
   constructor(private http: HttpClient) {}
 

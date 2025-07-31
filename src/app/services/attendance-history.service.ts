@@ -42,7 +42,7 @@ export interface EstadisticasAsistencia {
   providedIn: 'root'
 })
 export class AttendanceHistoryService {
-  private apiUrl = 'http://localhost:3000/api'; // Tu API real
+  private apiUrl = 'http://localhost:3000/api/academic'; // Tu API real
   private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
 

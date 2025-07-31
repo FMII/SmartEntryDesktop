@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, forkJoin } from 'rxjs';
 import { catchError, timeout, shareReplay, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
@@ -47,7 +47,7 @@ export interface CompleteSchedule {
   providedIn: 'root'
 })
 export class TeachersScheduleService {
-  private apiUrl = 'http://localhost:3000/api'; // Tu API real
+  private apiUrl = 'http://localhost:3000/api/academic'; // Tu API real
   private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
@@ -238,26 +238,148 @@ export class TeachersScheduleService {
     );
   }
 
-  getCompleteSchedule(teacherId?: number): Observable<CompleteSchedule> {
-    const params: any = {};
-    if (teacherId) params.teacher_id = teacherId;
-
-    const cacheKey = this.getCacheKey('complete_schedule', params);
+  getCompleteScheduleData(teacherId: number, groupId?: number, subjectId?: number): Observable<any> {
+    const cacheKey = this.getCacheKey('complete_schedule_data', { teacherId, groupId, subjectId });
     const cached = this.cache.get(cacheKey);
     
     if (cached && this.isCacheValid(cached.timestamp)) {
       return of(cached.data);
     }
 
-    return this.http.get<CompleteSchedule>(`${this.apiUrl}/teacher-subject-groups/`, { params }).pipe(
+    // Combinar múltiples endpoints usando forkJoin
+    return forkJoin({
+      teacherAssignments: this.http.get<any>(`${this.apiUrl}/teacher-subject-groups/teacher/${teacherId}`),
+      groups: this.http.get<any>(`${this.apiUrl}/groups/list`),
+      subjects: this.http.get<any>(`${this.apiUrl}/subjects/`),
+      schedules: this.http.get<any>(`${this.apiUrl}/schedules/`)
+    }).pipe(
       timeout(20000),
       map(response => {
-        this.cache.set(cacheKey, { data: response, timestamp: Date.now() });
-        return response;
+        // Procesar y combinar los datos
+        const processedData = this.processCombinedData(response, teacherId, groupId, subjectId);
+        
+        this.cache.set(cacheKey, { data: processedData, timestamp: Date.now() });
+        return processedData;
       }),
       shareReplay(1),
       catchError(this.handleError)
     );
+  }
+
+  private processCombinedData(response: any, teacherId: number, groupId?: number, subjectId?: number): any {
+    const { teacherAssignments, groups, subjects, schedules } = response;
+    
+    console.log('🔍 Procesando datos combinados:', { teacherAssignments, groups, subjects, schedules });
+    
+    // Filtrar asignaciones del profesor
+    let filteredAssignments: any[] = teacherAssignments.data?.teacherSubjectGroups || teacherAssignments || [];
+    
+    if (groupId) {
+      filteredAssignments = filteredAssignments.filter((assignment: any) => 
+        assignment.group_id == groupId
+      );
+    }
+    
+    if (subjectId) {
+      filteredAssignments = filteredAssignments.filter((assignment: any) => 
+        assignment.subject_id == subjectId
+      );
+    }
+
+    // Normalizar grupos - asegurar que sea un array
+    let normalizedGroups: any[] = [];
+    if (groups) {
+      if (groups.data && Array.isArray(groups.data)) {
+        normalizedGroups = groups.data;
+      } else if (Array.isArray(groups)) {
+        normalizedGroups = groups;
+      } else if (groups.data && groups.data.groups && Array.isArray(groups.data.groups)) {
+        normalizedGroups = groups.data.groups;
+      }
+    }
+
+    // Normalizar materias - asegurar que sea un array
+    let normalizedSubjects: any[] = [];
+    if (subjects) {
+      if (subjects.data && Array.isArray(subjects.data)) {
+        normalizedSubjects = subjects.data;
+      } else if (Array.isArray(subjects)) {
+        normalizedSubjects = subjects;
+      } else if (subjects.data && subjects.data.subjects && Array.isArray(subjects.data.subjects)) {
+        normalizedSubjects = subjects.data.subjects;
+      }
+    }
+
+    // Normalizar horarios - asegurar que sea un array
+    let normalizedSchedules: any[] = [];
+    if (schedules) {
+      if (schedules.data && schedules.data.schedules && Array.isArray(schedules.data.schedules)) {
+        normalizedSchedules = schedules.data.schedules;
+      } else if (Array.isArray(schedules)) {
+        normalizedSchedules = schedules;
+      } else if (schedules.data && Array.isArray(schedules.data)) {
+        normalizedSchedules = schedules.data;
+      }
+    }
+
+    console.log('📊 Datos normalizados:', {
+      filteredAssignments: filteredAssignments.length,
+      normalizedGroups: normalizedGroups.length,
+      normalizedSubjects: normalizedSubjects.length,
+      normalizedSchedules: normalizedSchedules.length
+    });
+
+    // Combinar datos de horarios con asignaciones
+    const combinedSchedules: any[] = [];
+    
+    filteredAssignments.forEach((assignment: any) => {
+      const group = normalizedGroups.find((g: any) => g.id === assignment.group_id);
+      const subject = normalizedSubjects.find((s: any) => s.id === assignment.subject_id);
+      
+      // Buscar horarios relacionados
+      normalizedSchedules.forEach((schedule: any) => {
+        // Convertir string de tiempo a formato HH:MM
+        const formatTime = (timeString: string) => {
+          if (!timeString) return '';
+          try {
+            // Si es un string ISO, extraer solo la parte de tiempo
+            if (timeString.includes('T')) {
+              return timeString.split('T')[1].slice(0, 5);
+            }
+            // Si ya es formato HH:MM, devolverlo tal como está
+            if (timeString.includes(':')) {
+              return timeString.slice(0, 5);
+            }
+            return timeString;
+          } catch (error) {
+            console.error('Error formateando tiempo:', timeString, error);
+            return '';
+          }
+        };
+
+        combinedSchedules.push({
+          id: schedule.id,
+          teacher_id: assignment.teacher_id,
+          teacher_name: assignment.users?.first_name + ' ' + assignment.users?.last_name || 'Profesor',
+          subject_id: assignment.subject_id,
+          subject_name: subject?.name || 'Materia',
+          group_id: assignment.group_id,
+          group_name: group?.name || 'Grupo',
+          day: schedule.weekday,
+          start_time: formatTime(schedule.start_time),
+          end_time: formatTime(schedule.end_time),
+          classroom: assignment.classrooms?.name || ''
+        });
+      });
+    });
+
+    console.log('✅ Horarios combinados generados:', combinedSchedules.length);
+
+    return {
+      schedules: combinedSchedules,
+      groups: normalizedGroups,
+      subjects: normalizedSubjects
+    };
   }
 
   // Method to clear cache when needed

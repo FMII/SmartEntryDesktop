@@ -11,57 +11,45 @@
             <!-- Filtros y controles -->
             <div class="filters-container">
                 <div class="filters-row">
-                    <!-- Dropdown de docentes -->
-                    <div class="filter-group">
-                        <label for="teacherSelect" class="filter-label">Docente:</label>
-                        <select id="teacherSelect" 
-                                [(ngModel)]="selectedDocente" 
-                                (change)="onDocenteChange()"
-                                [disabled]="loading"
-                                class="filter-select">
-                            <option value="" disabled selected>Selecciona un docente</option>
-                            <option *ngFor="let docente of docentes" [value]="docente.id">
-                                {{ docente.nombre || docente.first_name + ' ' + docente.last_name }}
-                            </option>
-                        </select>
-                    </div>
-
                     <!-- Dropdown de grupos -->
                     <div class="filter-group">
                         <label for="groupSelect" class="filter-label">Grupo:</label>
                         <select id="groupSelect" 
                                 [(ngModel)]="selectedGroup" 
                                 (change)="onGroupChange()"
-                                [disabled]="loading || !selectedDocente"
+                                [disabled]="loading"
                                 class="filter-select">
-                            <option value="">Todos los grupos</option>
-                            <option *ngFor="let grupo of grupos" [value]="grupo.id">
+                            <option value="" disabled selected>Selecciona un grupo</option>
+                            <option *ngFor="let grupo of grupos || []" [value]="grupo.id">
                                 {{ grupo.nombre || grupo.name }}
                             </option>
                         </select>
                     </div>
 
-                    <!-- Controles de actualización -->
-                    <div class="controls-group">
-                        <button (click)="recargarDatos()" 
-                                [disabled]="loading"
-                                class="control-btn">
-                            <i class="ti ti-refresh" [class.animate-spin]="loading"></i>
-                            <span class="btn-text">Recargar</span>
-                        </button>
-                        <button (click)="toggleAutoRefresh()" 
-                                [class]="autoRefreshEnabled ? 'auto-btn active' : 'control-btn'"
-                                class="control-btn">
-                            <i class="ti ti-clock"></i>
-                            <span class="btn-text">Auto</span>
-                        </button>
-                        <button (click)="limpiarFiltros()" 
-                                [disabled]="loading"
-                                class="control-btn">
-                            <i class="ti ti-x"></i>
-                            <span class="btn-text">Limpiar</span>
-                        </button>
+                    <!-- Dropdown de materias -->
+                    <div class="filter-group">
+                        <label for="subjectSelect" class="filter-label">Materia:</label>
+                        <select id="subjectSelect" 
+                                [(ngModel)]="selectedSubject" 
+                                (change)="onSubjectChange()"
+                                [disabled]="loading || !selectedGroup"
+                                class="filter-select">
+                            <option value="" disabled selected>Selecciona una materia</option>
+                            <option *ngFor="let materia of materias || []" [value]="materia.id">
+                                {{ materia.nombre || materia.name }}
+                            </option>
+                        </select>
                     </div>
+
+                                         <!-- Controles de actualización -->
+                     <div class="controls-group">
+                         <button (click)="recargarDatos()" 
+                                 [disabled]="loading"
+                                 class="control-btn">
+                             <i class="ti ti-refresh" [class.animate-spin]="loading"></i>
+                             <span class="btn-text">Recargar</span>
+                         </button>
+                     </div>
                 </div>
             </div>
 
@@ -109,17 +97,17 @@
                 </div>
             </div>
 
-            <!-- Mensaje cuando no hay datos -->
-            <div *ngIf="!loading && horariosFiltrados.length === 0 && selectedDocente" class="empty-state">
-                <i class="ti ti-calendar-off"></i>
-                <p>No se encontraron horarios para el docente seleccionado</p>
-            </div>
-
-            <!-- Mensaje inicial -->
-            <div *ngIf="!loading && !selectedDocente" class="empty-state">
-                <i class="ti ti-user-search"></i>
-                <p>Selecciona un docente para ver su horario</p>
-            </div>
+                         <!-- Mensaje cuando no hay datos -->
+             <div *ngIf="!loading && horariosFiltrados.length === 0 && selectedGroup" class="empty-state">
+                 <i class="ti ti-calendar-off"></i>
+                 <p>No se encontraron horarios para el grupo seleccionado</p>
+             </div>
+ 
+             <!-- Mensaje inicial -->
+             <div *ngIf="!loading && !selectedGroup" class="empty-state">
+                 <i class="ti ti-user-search"></i>
+                 <p>Selecciona un grupo para ver su horario</p>
+             </div>
         </div>
     </div>
 </div>

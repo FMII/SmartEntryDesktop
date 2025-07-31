@@ -44,7 +44,7 @@ export class TwoFactorComponent {
     this.errorMessage = '';
     this.successMessage = '';
     const code = this.codeForm.value.code;
-    this.http.post<any>('http://localhost:3000/api/users/verify', { email: this.email, code }).subscribe({
+    this.http.post<any>('http://localhost:3000/api/academic/users/verify', { email: this.email, code }).subscribe({
       next: (res) => {
         if (res.status === 'success') {
           // Guardar todos los datos del usuario
@@ -79,7 +79,7 @@ export class TwoFactorComponent {
     this.resendLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
-    this.http.post<any>('http://localhost:3000/api/resend', { email: this.email }).subscribe({
+    this.http.post<any>('http://localhost:3000/api/academic/resend', { email: this.email }).subscribe({
       next: (res) => {
         if (res.status === 'success') {
           this.successMessage = res.msg || 'Código reenviado';
