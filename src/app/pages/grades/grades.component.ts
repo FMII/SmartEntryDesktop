@@ -352,7 +352,8 @@ export class GradesComponent implements OnInit, OnDestroy {
 
     this.subjectUnits.forEach(unit => {
       const gradeValue = alumno[`u${unit.number}`];
-      console.log(`Unidad ${unit.number}: ${gradeValue}`);
+      const gradeId = alumno[`gradeId${unit.number}`];
+      console.log(`Unidad ${unit.number}: ${gradeValue}, ID existente: ${gradeId}`);
       
       if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
         // Validar que la calificación esté en el rango correcto (0-10)
@@ -372,16 +373,32 @@ export class GradesComponent implements OnInit, OnDestroy {
 
         console.log('Enviando datos:', data);
 
-        this.gradesService.createGrade(data).subscribe({
-          next: (response) => {
-            console.log('Calificación guardada:', response);
-            alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unit.number}`);
-          },
-          error: (error) => {
-            console.error('Error al guardar:', error);
-            alert(`Error al guardar calificación: ${error.message}`);
-          }
-        });
+        // Si ya existe un gradeId, actualizar. Si no, crear nuevo
+        if (gradeId) {
+          console.log('Actualizando calificación existente con ID:', gradeId);
+          this.gradesService.updateGrade(parseInt(gradeId), data).subscribe({
+            next: (response) => {
+              console.log('Calificación actualizada:', response);
+              alert(`Calificación actualizada para ${alumno.nombre} - Unidad ${unit.number}`);
+            },
+            error: (error) => {
+              console.error('Error al actualizar:', error);
+              alert(`Error al actualizar calificación: ${error.message}`);
+            }
+          });
+        } else {
+          console.log('Creando nueva calificación');
+          this.gradesService.createGrade(data).subscribe({
+            next: (response) => {
+              console.log('Calificación guardada:', response);
+              alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unit.number}`);
+            },
+            error: (error) => {
+              console.error('Error al guardar:', error);
+              alert(`Error al guardar calificación: ${error.message}`);
+            }
+          });
+        }
       }
     });
   }
@@ -405,7 +422,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         // Validar que la calificación esté en el rango correcto (0-10)
         const gradeNumber = parseFloat(gradeValue);
         if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
-          console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+          console.error(` Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
           alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
           return;
         }
@@ -464,7 +481,7 @@ export class GradesComponent implements OnInit, OnDestroy {
           // Validar que la calificación esté en el rango correcto (0-10)
           const gradeNumber = parseFloat(gradeValue);
           if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
-            console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+            console.error(`Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
             alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
             return;
           }
@@ -535,7 +552,7 @@ export class GradesComponent implements OnInit, OnDestroy {
           // Validar que la calificación esté en el rango correcto (0-10)
           const gradeNumber = parseFloat(gradeValue);
           if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
-            console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+            console.error(`Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
             alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
             return;
           }
