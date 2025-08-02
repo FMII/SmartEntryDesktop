@@ -20,7 +20,7 @@ export class SidebarComponent {
   }
 
   toggleSidebar() {
-    console.log('🔄 Toggle sidebar ejecutado');
+    console.log('Toggle sidebar ejecutado');
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 

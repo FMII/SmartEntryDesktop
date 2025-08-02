@@ -61,13 +61,13 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     
     // Verificar autenticación
     const currentUser = this.authService.getCurrentUser();
-    console.log('👤 Usuario actual en historial:', currentUser);
-    console.log('🔑 localStorage userId:', localStorage.getItem('userId'));
-    console.log('📧 localStorage email:', localStorage.getItem('email'));
-    console.log('🎫 localStorage token:', localStorage.getItem('token'));
+    console.log('Usuario actual en historial:', currentUser);
+    console.log('localStorage userId:', localStorage.getItem('userId'));
+    console.log('localStorage email:', localStorage.getItem('email'));
+    console.log('localStorage token:', localStorage.getItem('token'));
     
     if (!currentUser) {
-      console.log('❌ No hay usuario autenticado en historial. Por favor:');
+      console.log('No hay usuario autenticado en historial. Por favor:');
       console.log('1. Ve a la página de login');
       console.log('2. Haz login nuevamente');
       console.log('3. Completa el 2FA si es necesario');
@@ -75,16 +75,16 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('✅ Usuario autenticado, continuando...');
+    console.log('Usuario autenticado, continuando...');
     
     // TEMPORAL: Limpiar cache para forzar peticiones HTTP
-    console.log('🧹 Limpiando cache temporalmente para debug...');
+    console.log('Limpiando cache temporalmente para debug...');
     this.cache.clear();
     
-    console.log('⚙️ Configurando search debounce...');
+    console.log('Configurando search debounce...');
     this.setupSearchDebounce();
     
-    console.log('📡 Iniciando carga de datos iniciales...');
+    console.log('Iniciando carga de datos iniciales...');
     this.cargarDatosIniciales();
   }
 
@@ -97,20 +97,20 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   }
 
   private setupSearchDebounce(): void {
-    console.log('🔍 Configurando search debounce...');
+    console.log('Configurando search debounce...');
     this.searchSubject.pipe(
       debounceTime(300), // Esperar 300ms antes de buscar
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      console.log('🔍 Ejecutando búsqueda con debounce...');
+      console.log('Ejecutando búsqueda con debounce...');
       this.filtrarRegistros();
     });
-    console.log('✅ Search debounce configurado');
+    console.log('Search debounce configurado');
   }
 
   cargarDatosIniciales(): void {
-    console.log('🔄 Iniciando cargarDatosIniciales...');
+    console.log('Iniciando cargarDatosIniciales...');
     
     this.loading = true;
     this.error = '';
@@ -118,10 +118,10 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
     // Obtener profesor autenticado
     const currentTeacher = this.authService.getCurrentUser();
-    console.log('🔍 Historial - Profesor actual:', currentTeacher);
+    console.log('Historial - Profesor actual:', currentTeacher);
     
     if (!currentTeacher?.id) {
-      console.log('❌ No hay profesor autenticado en historial');
+      console.log('No hay profesor autenticado en historial');
       this.error = 'No hay profesor autenticado';
       this.loading = false;
       this.cdr.markForCheck();
@@ -134,24 +134,24 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       this.attendanceHistoryService.getMateriasAsignadas(currentTeacher.id)
     ];
 
-    console.log('📡 Enviando peticiones HTTP para datos filtrados por profesor...');
+    console.log('Enviando peticiones HTTP para datos filtrados por profesor...');
 
     forkJoin(requests)
       .pipe(
         catchError(error => {
-          console.error('❌ Error cargando datos iniciales:', error);
+          console.error('Error cargando datos iniciales:', error);
           this.error = 'Error al cargar los datos iniciales';
           return [];
         }),
         finalize(() => {
-          console.log('✅ Finalizando cargarDatosIniciales');
+          console.log('Finalizando cargarDatosIniciales');
           this.loading = false;
           this.cdr.markForCheck();
         }),
         takeUntil(this.destroy$)
       )
       .subscribe(([grupos, materias]) => {
-        console.log('📦 Datos filtrados recibidos:', { grupos, materias });
+        console.log('Datos filtrados recibidos:', { grupos, materias });
         
         // Asignar grupos del profesor
         this.grupos = Array.isArray(grupos) ? grupos : [];
@@ -159,18 +159,18 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
         // Asignar materias del profesor
         this.materias = Array.isArray(materias) ? materias : [];
         
-        console.log('📊 Grupos asignados al profesor:', this.grupos);
-        console.log('📚 Materias asignadas al profesor:', this.materias);
+        console.log('Grupos asignados al profesor:', this.grupos);
+        console.log('Materias asignadas al profesor:', this.materias);
         
         if (this.grupos.length > 0) {
           this.selectedGroup = this.grupos[0].id;
-          console.log('🎯 Grupo seleccionado:', this.selectedGroup);
+          console.log('Grupo seleccionado:', this.selectedGroup);
         } else {
-          console.log('⚠️ No hay grupos disponibles para el profesor');
+          console.log('No hay grupos disponibles para el profesor');
         }
         
         // Siempre cargar historial, con o sin grupo seleccionado
-        console.log('📡 Cargando historial de asistencia...');
+        console.log('Cargando historial de asistencia...');
         this.cargarHistorialAsistencia();
         
         this.cdr.markForCheck();
@@ -178,11 +178,11 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   }
 
   cargarHistorialAsistencia(): void {
-    console.log('🔄 Iniciando cargarHistorialAsistencia...', { selectedGroup: this.selectedGroup });
+    console.log('Iniciando cargarHistorialAsistencia...', { selectedGroup: this.selectedGroup });
     
     // Solo cargar datos si hay un grupo seleccionado
     if (!this.selectedGroup) {
-      console.log('⚠️ No hay grupo seleccionado, tabla vacía');
+      console.log('No hay grupo seleccionado, tabla vacía');
       this.registros = [];
       this.registrosFiltrados = [];
       this.totalItems = 0;
@@ -219,19 +219,19 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       this.attendanceHistoryService.getGrupos()
     ]).pipe(
       catchError(error => {
-        console.error('❌ Error al cargar historial de asistencia:', error);
+        console.error('Error al cargar historial de asistencia:', error);
         this.error = error.message || 'Error al cargar el historial de asistencia';
         return [];
       }),
       finalize(() => {
-        console.log('✅ Finalizando cargarHistorialAsistencia');
+        console.log('Finalizando cargarHistorialAsistencia');
         this.loading = false;
         this.cdr.markForCheck();
       }),
       takeUntil(this.destroy$)
     )
     .subscribe(([asistencias, alumnos, materias, grupos]) => {
-      console.log('📦 Datos recibidos:', { asistencias, alumnos, materias, grupos });
+      console.log('Datos recibidos:', { asistencias, alumnos, materias, grupos });
       
       // Hacer el join para mostrar los nombres
       this.registros = asistencias.map(reg => {
@@ -249,7 +249,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
           subject_name: materia ? materia.name : 'Desconocido'
         };
 
-        console.log('📝 Registro procesado:', registroCompleto);
+        console.log('Registro procesado:', registroCompleto);
         return registroCompleto;
       });
 
@@ -262,7 +262,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       this.currentPage = 1;
       }
       
-      console.log('📊 Registros procesados:', this.registros.length, 'Página actual:', this.currentPage);
+      console.log('Registros procesados:', this.registros.length, 'Página actual:', this.currentPage);
       
       this.cdr.markForCheck();
     });
@@ -270,41 +270,41 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   private getCacheKey(): string {
     const key = `${this.selectedGroup || 'no-group'}-${this.selectedMateria || 'no-materia'}-${this.fechaInicio || 'no-fecha'}-${this.fechaFin || 'no-fecha'}-${this.searchQuery || 'no-search'}`;
-    console.log('🔑 Cache key generado:', key);
+    console.log('Cache key generado:', key);
     return key;
   }
 
   onGroupChange(): void {
-    console.log('🎯 Grupo cambiado:', this.selectedGroup);
+    console.log('Grupo cambiado:', this.selectedGroup);
     this.cargarHistorialAsistencia();
   }
 
   onMateriaChange(): void {
-    console.log('📚 Materia cambiada:', this.selectedMateria);
+    console.log('Materia cambiada:', this.selectedMateria);
     this.cargarHistorialAsistencia();
   }
 
   onFechaInicioChange(): void {
-    console.log('📅 Fecha inicio cambiada:', this.fechaInicio);
+    console.log('Fecha inicio cambiada:', this.fechaInicio);
     if (this.selectedGroup) {
       this.cargarHistorialAsistencia();
     }
   }
 
   onFechaFinChange(): void {
-    console.log('📅 Fecha fin cambiada:', this.fechaFin);
+    console.log('Fecha fin cambiada:', this.fechaFin);
     if (this.selectedGroup) {
       this.cargarHistorialAsistencia();
     }
   }
 
   onSearchChange(): void {
-    console.log('🔍 Búsqueda cambiada:', this.searchQuery);
+    console.log('Búsqueda cambiada:', this.searchQuery);
     this.searchSubject.next(this.searchQuery);
     
     // Si hay término de búsqueda, recargar datos para incluir alumnos del grupo
     if (this.searchQuery.trim()) {
-      console.log('📡 Recargando datos para búsqueda...');
+      console.log('Recargando datos para búsqueda...');
       this.cargarHistorialAsistencia();
     } else {
       // Si no hay término de búsqueda, solo filtrar los registros existentes
@@ -341,7 +341,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     // Guardar la página actual y posición para preservarla
     const paginaActual = this.currentPage;
     const totalItemsActual = this.totalItems;
-    console.log('📄 Preservando posición - Página:', paginaActual, 'Total items:', totalItemsActual);
+    console.log('Preservando posición - Página:', paginaActual, 'Total items:', totalItemsActual);
 
     this.loading = true;
     this.error = '';
@@ -358,24 +358,24 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
           // Restaurar la página actual y asegurar que no se recargue
           this.currentPage = paginaActual;
           this.totalItems = totalItemsActual;
-          console.log('✅ Posición restaurada - Página:', this.currentPage);
+          console.log('Posición restaurada - Página:', this.currentPage);
           this.cdr.markForCheck();
         }),
         takeUntil(this.destroy$)
       )
       .subscribe({
         next: (response) => {
-          console.log('✅ Asistencia actualizada exitosamente:', response);
+          console.log('Asistencia actualizada exitosamente:', response);
           // Actualizar SOLO el estado local del registro específico
           registro.status = nuevoEstado;
           registro.asistencia = nuevoEstado;
           
           // NO recargar nada más para evitar volver al inicio
-          console.log('📝 Estado local actualizado sin recargar tabla');
+          console.log('Estado local actualizado sin recargar tabla');
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('❌ Error al actualizar asistencia:', error);
+          console.error('Error al actualizar asistencia:', error);
           this.error = error.message || 'Error al actualizar la asistencia';
         }
       });
@@ -405,7 +405,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   toggleAutoRefresh(): void {
     // TEMPORAL: Deshabilitar completamente el auto-refresh
-    console.log('🚫 Auto-refresh completamente deshabilitado');
+    console.log('Auto-refresh completamente deshabilitado');
     this.autoRefreshEnabled = false;
       if (this.autoRefreshInterval) {
         clearInterval(this.autoRefreshInterval);
@@ -417,13 +417,13 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     // this.autoRefreshEnabled = !this.autoRefreshEnabled;
     // 
     // if (this.autoRefreshEnabled) {
-    //   console.log('⚠️ Auto-refresh activado - esto puede causar recargas automáticas');
+    //   console.log('Auto-refresh activado - esto puede causar recargas automáticas');
     //   this.autoRefreshInterval = setInterval(() => {
-    //     console.log('🔄 Auto-refresh ejecutándose...');
+    //     console.log('Auto-refresh ejecutándose...');
     //     this.cargarHistorialAsistencia();
     //   }, 60000); // Aumentado a 60 segundos para mejor rendimiento
     // } else {
-    //   console.log('✅ Auto-refresh deshabilitado');
+    //   console.log('Auto-refresh deshabilitado');
     //   if (this.autoRefreshInterval) {
     //     clearInterval(this.autoRefreshInterval);
     //     this.autoRefreshInterval = null;
@@ -433,20 +433,20 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   }
 
   recargarDatos(): void {
-    console.log('🔄 ===== RECARGAR DATOS INICIADO =====');
-    console.log('🔄 Recargando datos en historial...', {
+    console.log('===== RECARGAR DATOS INICIADO =====');
+    console.log('Recargando datos en historial...', {
       selectedGroup: this.selectedGroup,
       selectedMateria: this.selectedMateria,
       currentUser: this.authService.getCurrentUser()
     });
     
-    console.log('🧹 Limpiando cache...');
+    console.log('Limpiando cache...');
     this.cache.clear(); // Limpiar cache
     this.attendanceHistoryService.clearAllCache(); // Limpiar cache del servicio
     
-    console.log('📡 Llamando a cargarHistorialAsistencia...');
+    console.log('Llamando a cargarHistorialAsistencia...');
     this.cargarHistorialAsistencia();
-    console.log('✅ ===== RECARGAR DATOS FINALIZADO =====');
+    console.log('===== RECARGAR DATOS FINALIZADO =====');
   }
 
   // Utilidades optimizadas

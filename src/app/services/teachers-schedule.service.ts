@@ -163,14 +163,14 @@ export class TeachersScheduleService {
           return teachersArray;
         }),
         catchError(error => {
-          console.log('⚠️ Error obteniendo profesores, devolviendo array vacío');
+          console.log('Error obteniendo profesores, devolviendo array vacío');
           return of([]);
         })
       );
     }
 
     // Fallback: devolver array vacío si no hay usuario autenticado
-    console.log('⚠️ No hay usuario autenticado, devolviendo array vacío de profesores');
+            console.log('No hay usuario autenticado, devolviendo array vacío de profesores');
     return of([]);
   }
 
@@ -322,7 +322,7 @@ export class TeachersScheduleService {
       }
     }
 
-    console.log('📊 Datos normalizados:', {
+            console.log('Datos normalizados:', {
       filteredAssignments: filteredAssignments.length,
       normalizedGroups: normalizedGroups.length,
       normalizedSubjects: normalizedSubjects.length,
@@ -373,7 +373,7 @@ export class TeachersScheduleService {
       });
     });
 
-    console.log('✅ Horarios combinados generados:', combinedSchedules.length);
+          console.log('Horarios combinados generados:', combinedSchedules.length);
 
     return {
       schedules: combinedSchedules,
@@ -410,11 +410,11 @@ export class TeachersScheduleService {
           }
         }
         
-        console.log('✅ Asignaciones del profesor obtenidas:', assignments);
+        console.log('Asignaciones del profesor obtenidas:', assignments);
         return assignments;
       }),
       catchError((error: any) => {
-        console.error('❌ Error al obtener asignaciones del profesor:', error);
+        console.error('Error al obtener asignaciones del profesor:', error);
         return of([]); // Devolver array vacío en caso de error
       }),
       shareReplay(1)

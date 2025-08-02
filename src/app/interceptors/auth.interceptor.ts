@@ -30,7 +30,7 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      console.log('❌ Interceptor - Error capturado:', {
+      console.log('Interceptor - Error capturado:', {
         status: error.status,
         url: req.url,
         message: error.message
@@ -44,8 +44,18 @@ export const authInterceptor: HttpInterceptorFn = (
           window.location.reload();
         });
       } else if (error.status === 403) {
-        console.log('⚠️ Interceptor - Error 403 detectado, pero NO cerrando sesión (permisos insuficientes)');
-        console.log('🔍 URL que causó el error:', req.url);
+        console.log('Interceptor - Error 403 detectado, pero NO cerrando sesión (permisos insuficientes)');
+        console.log('URL que causó el error:', req.url);
+        console.log('Token enviado en la petición:', !!token);
+        console.log('Headers de la petición:', authReq.headers);
+        
+        // Verificar si el token existe pero puede estar expirado
+        if (token) {
+          console.log('Token disponible pero rechazado por el servidor');
+          console.log('Posibles causas: token expirado, permisos insuficientes, o ID de usuario incorrecto');
+        } else {
+          console.log('No hay token disponible');
+        }
       }
       return throwError(() => error);
     })

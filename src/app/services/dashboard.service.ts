@@ -88,11 +88,11 @@ export class DashboardService {
           }
         }
         
-        console.log('✅ Datos de asistencia procesados:', attendanceData);
+        console.log('Datos de asistencia procesados:', attendanceData);
         return attendanceData;
       }),
       catchError((error) => {
-        console.error('❌ Error al obtener asistencia por grupo:', error);
+        console.error('Error al obtener asistencia por grupo:', error);
         return of([]);
       })
     );
@@ -105,6 +105,9 @@ export class DashboardService {
 
   // Obtener asignaciones del profesor
   getTeacherAssignments(teacherId: number): Observable<any[]> {
+    console.log('🔍 getTeacherAssignments - Teacher ID:', teacherId);
+    console.log('🔍 getTeacherAssignments - Token disponible:', !!localStorage.getItem('token'));
+    
     return this.http.get<any>(`${this.API_URL}/teacher-subject-groups/teacher/${teacherId}`).pipe(
       map((res: any) => {
         console.log('📡 Respuesta raw de asignaciones:', res);
@@ -124,11 +127,22 @@ export class DashboardService {
           }
         }
         
-        console.log('✅ Asignaciones procesadas:', assignments);
+        console.log('Asignaciones procesadas:', assignments);
         return assignments;
       }),
       catchError((error: any) => {
-        console.error('❌ Error al obtener asignaciones del profesor:', error);
+        console.error('Error al obtener asignaciones del profesor:', error);
+        console.error('Status del error:', error.status);
+        console.error('Mensaje del error:', error.message);
+        console.error('URL que causó el error:', `${this.API_URL}/teacher-subject-groups/teacher/${teacherId}`);
+        
+        // Si es un error 403, verificar el token
+        if (error.status === 403) {
+          const token = localStorage.getItem('token');
+          console.error('Error 403 - Token disponible:', !!token);
+          console.error('Error 403 - Token completo:', token);
+        }
+        
         return of([]); // Devolver array vacío en caso de error
       })
     );
@@ -170,11 +184,11 @@ export class DashboardService {
           };
         });
         
-        console.log('✅ Estudiantes del grupo', groupId, ':', students);
+        console.log('Estudiantes del grupo', groupId, ':', students);
         return students;
       }),
       catchError((error) => {
-        console.error('❌ Error al obtener estudiantes del grupo:', error);
+        console.error('Error al obtener estudiantes del grupo:', error);
         return of([]);
       })
     );

@@ -52,7 +52,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     console.log('🎫 localStorage token:', localStorage.getItem('token'));
     
     if (!currentUser) {
-      console.log('⚠️ No hay usuario autenticado en horario. Por favor:');
+      console.log('No hay usuario autenticado en horario. Por favor:');
       console.log('1. Ve a la página de login');
       console.log('2. Haz login nuevamente');
       console.log('3. Completa el 2FA si es necesario');
@@ -60,7 +60,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('✅ Usuario autenticado, cargando datos iniciales...');
+          console.log('Usuario autenticado, cargando datos iniciales...');
     this.cargarDatosIniciales();
     this.setupAutoRefresh();
   }
@@ -74,7 +74,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   }
 
   cargarDatosIniciales(): void {
-    console.log('📊 Iniciando cargarDatosIniciales en horarios...');
+    console.log('Iniciando cargarDatosIniciales en horarios...');
     this.loading = true;
     this.error = null;
     this.cdr.markForCheck();
@@ -84,7 +84,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     console.log('🔍 Horario - Profesor actual:', currentTeacher);
     
     if (!currentTeacher?.id) {
-      console.log('❌ No hay profesor autenticado en horario');
+      console.log('No hay profesor autenticado en horario');
       this.error = 'No hay profesor autenticado';
       this.loading = false;
       this.cdr.markForCheck();
@@ -101,7 +101,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
       next: (data) => {
         // Validar que assignments sea un array
         if (!data.assignments || !Array.isArray(data.assignments)) {
-          console.log('⚠️ Assignments no es un array válido en horario:', data.assignments);
+          console.log('Assignments no es un array válido en horario:', data.assignments);
           this.grupos = [];
         } else {
           // Procesar asignaciones para obtener grupos únicos del profesor
@@ -113,7 +113,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
             
             console.log('📦 Procesando asignación en horario:', assignment);
             console.log('🆔 Group ID:', groupId);
-            console.log('📝 Group Name:', groupName);
+            console.log('Group Name:', groupName);
             
             if (groupId && groupName) {
               if (!teacherGroups.has(groupId)) {
@@ -144,7 +144,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
           const subjectId = assignment.subject_id || assignment.subjects?.id;
           const subjectName = assignment.subjects?.name || assignment.subject_name;
           
-          console.log('📚 Procesando materia del profesor:', { subjectId, subjectName });
+                      console.log('Procesando materia del profesor:', { subjectId, subjectName });
           
           if (subjectId && subjectName) {
             if (!teacherSubjects.has(subjectId)) {
@@ -160,8 +160,8 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
       // Asignar solo las materias del profesor
       this.materias = Array.from(teacherSubjects.values());
         
-        console.log('✅ Grupos del profesor en horario:', this.grupos);
-        console.log('✅ Materias disponibles:', this.materias);
+        console.log('Grupos del profesor en horario:', this.grupos);
+        console.log('Materias disponibles:', this.materias);
         console.log('🔍 Tipo de grupos:', typeof this.grupos, Array.isArray(this.grupos));
         console.log('🔍 Tipo de materias:', typeof this.materias, Array.isArray(this.materias));
         

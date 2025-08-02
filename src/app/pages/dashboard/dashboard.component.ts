@@ -28,29 +28,32 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private authService: AuthService
   ) {
-    console.log('🏗️ DashboardComponent constructor ejecutado');
+    console.log('DashboardComponent constructor ejecutado');
     Chart.register(...registerables);
   }
 
   ngOnInit(): void {
-    console.log('🚀 DashboardComponent ngOnInit iniciado');
+    console.log('DashboardComponent ngOnInit iniciado');
     // Cargar solo los grupos del profesor autenticado
     const currentTeacher = this.authService.getCurrentUser();
-    console.log('🔍 Dashboard - Profesor actual:', currentTeacher);
+    console.log('Dashboard - Profesor actual:', currentTeacher);
+    console.log('Dashboard - Token disponible:', !!localStorage.getItem('token'));
     
     if (!currentTeacher?.id) {
-      console.log('❌ No hay profesor autenticado en dashboard');
+      console.log('No hay profesor autenticado en dashboard');
       return;
     }
+    
+    console.log('Dashboard - ID del profesor a consultar:', currentTeacher.id);
     
     // Cargar asignaciones del profesor
     this.dashboardService.getTeacherAssignments(currentTeacher.id).subscribe({
       next: (assignments: any) => {
-        console.log('✅ Asignaciones del profesor en dashboard:', assignments);
+        console.log('Asignaciones del profesor en dashboard:', assignments);
         
         // Validar que assignments sea un array
         if (!assignments || !Array.isArray(assignments)) {
-          console.log('⚠️ Assignments no es un array válido:', assignments);
+          console.log('Assignments no es un array válido:', assignments);
           this.grupos = [];
           this.cargarDatos(); // Para la gráfica
           return;
@@ -63,9 +66,9 @@ export class DashboardComponent implements OnInit {
           const groupId = assignment.group_id || assignment.groups?.id;
           const groupName = assignment.groups?.name || assignment.group_name;
           
-          console.log('📦 Procesando asignación:', assignment);
-          console.log('🆔 Group ID:', groupId);
-          console.log('📝 Group Name:', groupName);
+          console.log('Procesando asignación:', assignment);
+          console.log('Group ID:', groupId);
+          console.log('Group Name:', groupName);
           
           if (groupId && groupName) {
             if (!teacherGroups.has(groupId)) {
@@ -79,7 +82,7 @@ export class DashboardComponent implements OnInit {
         
         // Asignar solo los grupos del profesor
         this.grupos = Array.from(teacherGroups.values());
-        console.log('✅ Grupos del profesor en dashboard:', this.grupos);
+        console.log('Grupos del profesor en dashboard:', this.grupos);
         
         if (this.grupos.length > 0) {
           this.grupoSeleccionado = this.grupos[0].id;
@@ -89,7 +92,9 @@ export class DashboardComponent implements OnInit {
         this.cargarDatos(); // Para la gráfica
       },
       error: (error: any) => {
-        console.error('❌ Error al cargar asignaciones del profesor en dashboard:', error);
+        console.error('Error al cargar asignaciones del profesor en dashboard:', error);
+        console.error('Status del error:', error.status);
+        console.error('Mensaje del error:', error.message);
         this.grupos = [];
         this.cargarDatos(); // Para la gráfica
       }
@@ -97,14 +102,14 @@ export class DashboardComponent implements OnInit {
   }
 
   cargarTabla(fecha?: string): void {
-    console.log('📊 cargarTabla ejecutado con fecha:', fecha);
+    console.log('cargarTabla ejecutado con fecha:', fecha);
     if (!this.grupoSeleccionado) {
-      console.log('❌ No hay grupo seleccionado');
+      console.log('No hay grupo seleccionado');
       return;
     }
     
-    console.log('📊 Cargando tabla para grupo:', this.grupoSeleccionado);
-    console.log('📅 Fecha seleccionada:', fecha);
+    console.log('Cargando tabla para grupo:', this.grupoSeleccionado);
+    console.log('Fecha seleccionada:', fecha);
     
     // Si hay una fecha específica seleccionada, usar solo esa fecha
     let startDate: string, endDate: string;
@@ -112,16 +117,16 @@ export class DashboardComponent implements OnInit {
       // Usar solo la fecha seleccionada
       startDate = fecha;
       endDate = fecha;
-      console.log('🎯 Filtrando por fecha específica:', fecha);
+      console.log('Filtrando por fecha específica:', fecha);
     } else {
       // Por defecto, usar el mes actual
       const now = new Date();
       startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
-      console.log('📅 Usando rango del mes actual:', { startDate, endDate });
+      console.log('Usando rango del mes actual:', { startDate, endDate });
     }
     
-    console.log('📅 Rango de fechas final:', { startDate, endDate });
+    console.log('Rango de fechas final:', { startDate, endDate });
     
     // Cargar todos los alumnos del grupo y sus registros de asistencia
     forkJoin({
@@ -129,19 +134,19 @@ export class DashboardComponent implements OnInit {
       attendance: this.dashboardService.getAttendanceByGroup(this.grupoSeleccionado, startDate, endDate)
     }).subscribe({
       next: (data) => {
-        console.log('✅ Alumnos del grupo:', data.students);
-        console.log('✅ Registros de asistencia:', data.attendance);
-        console.log('📊 Total de registros de asistencia:', data.attendance.length);
+        console.log('Alumnos del grupo:', data.students);
+        console.log('Registros de asistencia:', data.attendance);
+        console.log('Total de registros de asistencia:', data.attendance.length);
         
         // Mostrar fechas únicas en los registros
         const uniqueDates = [...new Set(data.attendance.map((record: any) => {
           const date = new Date(record.date || record.fecha);
           return date.toISOString().slice(0, 10);
         }))];
-        console.log('📅 Fechas únicas en registros:', uniqueDates);
+        console.log('Fechas únicas en registros:', uniqueDates);
         
         // Mostrar las fechas originales que llegan del backend
-        console.log('🔍 Fechas originales del backend:');
+        console.log('Fechas originales del backend:');
         data.attendance.forEach((record: any, index: number) => {
           console.log(`  Registro ${index}: ${record.date || record.fecha}`);
         });
@@ -160,7 +165,7 @@ export class DashboardComponent implements OnInit {
         
         // Si estamos filtrando por fecha específica, solo mostrar alumnos con registros ese día
         if (fecha && fecha.trim() !== '') {
-          console.log('🎯 Filtrando solo alumnos con registros en fecha específica:', fecha);
+          console.log('Filtrando solo alumnos con registros en fecha específica:', fecha);
           this.registros = data.students
             .map((student: any) => {
               const studentAttendance = attendanceMap.get(student.id) || [];
@@ -171,14 +176,14 @@ export class DashboardComponent implements OnInit {
                 const recordDateStr = (record.date || record.fecha).split('T')[0];
                 const selectedDateStr = fecha;
                 
-                console.log(`📅 Comparando: ${recordDateStr} vs ${selectedDateStr} para estudiante ${student.id}`);
+                console.log(`Comparando: ${recordDateStr} vs ${selectedDateStr} para estudiante ${student.id}`);
                 return recordDateStr === selectedDateStr;
               });
               
               // Solo incluir si tiene registros de asistencia para esa fecha específica
               if (recordsForDate.length > 0) {
                 const recordForDate = recordsForDate[0]; // Tomar el primer registro de esa fecha
-                console.log(`✅ Encontrado registro para fecha ${fecha} del estudiante ${student.id}:`, recordForDate);
+                console.log(`Encontrado registro para fecha ${fecha} del estudiante ${student.id}:`, recordForDate);
                 return {
                   ...recordForDate,
                   id: student.id,
@@ -188,13 +193,13 @@ export class DashboardComponent implements OnInit {
                   user: student
                 };
               }
-              console.log(`❌ No se encontraron registros para fecha ${fecha} del estudiante ${student.id}`);
+              console.log(`No se encontraron registros para fecha ${fecha} del estudiante ${student.id}`);
               return null; // No incluir alumnos sin registros para esa fecha
             })
             .filter(record => record !== null); // Filtrar registros nulos
         } else {
           // Mostrar todos los alumnos del grupo (comportamiento original)
-          console.log('📋 Mostrando todos los alumnos del grupo');
+          console.log('Mostrando todos los alumnos del grupo');
           this.registros = data.students.map((student: any) => {
             const studentAttendance = attendanceMap.get(student.id) || [];
             
@@ -224,10 +229,10 @@ export class DashboardComponent implements OnInit {
           });
         }
         
-        console.log('✅ Registros procesados:', this.registros);
+        console.log('Registros procesados:', this.registros);
       },
       error: (error) => {
-        console.error('❌ Error al cargar tabla:', error);
+        console.error('Error al cargar tabla:', error);
         this.registros = [];
       }
     });
@@ -236,10 +241,10 @@ export class DashboardComponent implements OnInit {
   cargarDatos(): void {
     // Obtener profesor autenticado
     const currentTeacher = this.authService.getCurrentUser();
-    console.log('🔍 Dashboard - Profesor actual para gráfica:', currentTeacher);
+    console.log('Dashboard - Profesor actual para gráfica:', currentTeacher);
     
     if (!currentTeacher?.id) {
-      console.log('❌ No hay profesor autenticado para gráfica');
+      console.log('No hay profesor autenticado para gráfica');
       return;
     }
     
@@ -251,7 +256,7 @@ export class DashboardComponent implements OnInit {
     // Cargar solo datos de los grupos del profesor
     this.dashboardService.getTeacherAssignments(currentTeacher.id).subscribe({
       next: (assignments) => {
-        console.log('✅ Asignaciones del profesor para gráfica:', assignments);
+        console.log('Asignaciones del profesor para gráfica:', assignments);
         
         // Procesar asignaciones para obtener grupos únicos del profesor
         const teacherGroups = new Map();
@@ -272,7 +277,7 @@ export class DashboardComponent implements OnInit {
         
         // Solo cargar datos de los grupos del profesor
         const teacherGroupIds = Array.from(teacherGroups.keys());
-        console.log('📊 Grupos del profesor para gráfica:', teacherGroupIds);
+        console.log('Grupos del profesor para gráfica:', teacherGroupIds);
         
         if (teacherGroupIds.length > 0) {
           // Cargar datos solo para los grupos del profesor
@@ -287,17 +292,17 @@ export class DashboardComponent implements OnInit {
               total: g.top_student ? g.top_student.absences : 0
             }));
             
-            console.log('✅ Datos filtrados para gráfica:', this.ausenciasPorGrupo);
+            console.log('Datos filtrados para gráfica:', this.ausenciasPorGrupo);
             this.renderChart();
           });
         } else {
-          console.log('⚠️ No hay grupos asignados al profesor para gráfica');
+          console.log('No hay grupos asignados al profesor para gráfica');
           this.ausenciasPorGrupo = [];
           this.renderChart();
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar asignaciones para gráfica:', error);
+        console.error('Error al cargar asignaciones para gráfica:', error);
         this.ausenciasPorGrupo = [];
         this.renderChart();
       }
@@ -342,14 +347,14 @@ export class DashboardComponent implements OnInit {
   }
 
   onFechaFiltroChange(event: any): void {
-    console.log('🎯 onFechaFiltroChange ejecutado');
+    console.log('onFechaFiltroChange ejecutado');
     this.fechaFiltro = event.target.value;
-    console.log('📅 Fecha seleccionada en filtro:', this.fechaFiltro);
+    console.log('Fecha seleccionada en filtro:', this.fechaFiltro);
     
     if (this.fechaFiltro && this.fechaFiltro.trim() !== '') {
-      console.log('🎯 Filtrando por fecha específica:', this.fechaFiltro);
+      console.log('Filtrando por fecha específica:', this.fechaFiltro);
     } else {
-      console.log('📋 Mostrando todos los registros del mes');
+      console.log('Mostrando todos los registros del mes');
     }
     
     this.cargarDatos(); // Actualiza gráfica
@@ -405,7 +410,7 @@ export class DashboardComponent implements OnInit {
   }
 
   recargarDatos(): void {
-    console.log('🔄 Recargando datos del dashboard...');
+    console.log('Recargando datos del dashboard...');
     
     // Limpiar datos actuales
     this.registros = [];
@@ -415,6 +420,6 @@ export class DashboardComponent implements OnInit {
     this.cargarDatos(); // Recargar gráfica
     this.cargarTabla(this.fechaFiltro); // Recargar tabla
     
-    console.log('✅ Datos recargados desde la API');
+    console.log('Datos recargados desde la API');
   }
 }

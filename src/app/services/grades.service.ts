@@ -12,7 +12,7 @@ export class GradesService {
   private handleError(error: HttpErrorResponse): Observable<any> {
     let errorMessage = 'Ocurrió un error inesperado';
     
-    console.error('❌ Error detallado en GradesService:', {
+    console.error('Error detallado en GradesService:', {
       status: error.status,
       statusText: error.statusText,
       url: error.url,
@@ -23,8 +23,8 @@ export class GradesService {
     // Log detallado del error del backend
     console.error('🔍 Error completo del backend:', error.error);
     if (error.error && typeof error.error === 'object') {
-      console.error('📝 Mensaje del backend:', error.error.msg || error.error.message || 'Sin mensaje');
-      console.error('📊 Datos del error:', error.error.data);
+      console.error('Mensaje del backend:', error.error.msg || error.error.message || 'Sin mensaje');
+      console.error('Datos del error:', error.error.data);
     }
     
     if (error.error instanceof ErrorEvent) {
@@ -135,8 +135,8 @@ export class GradesService {
 
   // Crear calificación
   createGrade(data: any): Observable<any> {
-    console.log('📤 POST /api/grades con datos:', data);
-    console.log('📊 Tipos de datos:', {
+    console.log('POST /api/grades con datos:', data);
+    console.log('Tipos de datos:', {
       student_id: typeof data.student_id,
       subject_id: typeof data.subject_id,
       unit_number: typeof data.unit_number,
@@ -145,7 +145,7 @@ export class GradesService {
     return this.http.post(`${this.apiUrl}/grades`, data).pipe(
       timeout(10000),
       map(response => {
-        console.log('✅ Calificación creada exitosamente:', response);
+        console.log('Calificación creada exitosamente:', response);
         return response;
       }),
       catchError(this.handleError)
@@ -154,9 +154,9 @@ export class GradesService {
 
   // Actualizar calificación existente
   updateGrade(gradeId: number, data: any): Observable<any> {
-    console.log('📤 PUT /api/grades/:gradeId con datos:', data);
-    console.log('🔢 Grade ID:', gradeId);
-    console.log('📊 Tipos de datos:', {
+    console.log('PUT /api/grades/:gradeId con datos:', data);
+    console.log('Grade ID:', gradeId);
+    console.log('Tipos de datos:', {
       gradeId: typeof gradeId,
       student_id: typeof data.student_id,
       subject_id: typeof data.subject_id,
@@ -166,7 +166,7 @@ export class GradesService {
     return this.http.put(`${this.apiUrl}/grades/${gradeId}`, data).pipe(
       timeout(10000),
       map(response => {
-        console.log('✅ Calificación actualizada exitosamente:', response);
+        console.log('Calificación actualizada exitosamente:', response);
         return response;
       }),
       catchError(this.handleError)
@@ -280,7 +280,7 @@ export class GradesService {
         return response;
       }),
       catchError((error: any) => {
-        console.error('❌ Error al obtener calificaciones por materia:', error);
+        console.error('Error al obtener calificaciones por materia:', error);
         return of({ data: { grades: [] } });
       })
     );

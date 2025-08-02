@@ -60,7 +60,7 @@ export class GradesComponent implements OnInit, OnDestroy {
   cargarDatosDelProfesor(): void {
     
     if (!this.currentTeacher?.id) {
-      console.error('❌ No hay profesor autenticado');
+      console.error('No hay profesor autenticado');
       return;
     }
     
@@ -112,8 +112,8 @@ export class GradesComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar asignaciones del profesor:', error);
-        console.log('⚠️ No se pudieron cargar los grupos del profesor');
+        console.error('Error al cargar asignaciones del profesor:', error);
+        console.log('No se pudieron cargar los grupos del profesor');
         this.grupos = [];
       }
     });
@@ -143,7 +143,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         }, 100);
       }
     } else {
-      console.log('❌ No se encontró el grupo seleccionado');
+      console.log('No se encontró el grupo seleccionado');
       this.materias = [];
       this.showSubjectDropdown = false;
       this.selectedSubject = '';
@@ -181,8 +181,8 @@ export class GradesComponent implements OnInit, OnDestroy {
         this.cargarCalificacionesPorMateria();
       },
       error: (error) => {
-        console.error('❌ Error al cargar configuración de materia:', error);
-        console.log('⚠️ Usando unidades por defecto...');
+        console.error('Error al cargar configuración de materia:', error);
+        console.log('Usando unidades por defecto...');
         // Usar unidades por defecto si hay error
         this.subjectUnits = [
           { number: 1, name: 'Unidad 1' },
@@ -207,7 +207,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         this.procesarAlumnos(students);
       },
       error: (error) => {
-        console.log('⚠️ Error con endpoint específico, intentando con endpoint general...');
+        console.log('Error con endpoint específico, intentando con endpoint general...');
         this.gradesService.getAllStudents().subscribe({
           next: (allStudents) => {
             
@@ -218,8 +218,8 @@ export class GradesComponent implements OnInit, OnDestroy {
             this.procesarAlumnos(groupStudents);
           },
           error: (error2) => {
-            console.error('❌ Error al cargar alumnos:', error2);
-            console.log('⚠️ No se pudieron cargar estudiantes de la API');
+            console.error('Error al cargar alumnos:', error2);
+            console.log('No se pudieron cargar estudiantes de la API');
             this.alumnos = [];
             this.filtrarAlumnos();
           }
@@ -293,8 +293,8 @@ export class GradesComponent implements OnInit, OnDestroy {
         this.filtrarAlumnos();
       },
       error: (error) => {
-        console.error('❌ Error al cargar calificaciones:', error);
-        console.log('⚠️ No se pudieron cargar calificaciones de la API, inicializando en 0...');
+        console.error('Error al cargar calificaciones:', error);
+        console.log('No se pudieron cargar calificaciones de la API, inicializando en 0...');
         
         // En caso de error, inicializar calificaciones en 0
         this.alumnos = this.alumnos.map((alumno: any) => {
@@ -374,11 +374,11 @@ export class GradesComponent implements OnInit, OnDestroy {
 
         this.gradesService.createGrade(data).subscribe({
           next: (response) => {
-            console.log('✅ Calificación guardada:', response);
+            console.log('Calificación guardada:', response);
             alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unit.number}`);
           },
           error: (error) => {
-            console.error('❌ Error al guardar:', error);
+            console.error('Error al guardar:', error);
             alert(`Error al guardar calificación: ${error.message}`);
           }
         });
@@ -421,11 +421,11 @@ export class GradesComponent implements OnInit, OnDestroy {
 
         this.gradesService.updateGrade(parseInt(gradeId), data).subscribe({
           next: (response) => {
-            console.log('✅ Calificación actualizada:', response);
+            console.log('Calificación actualizada:', response);
             alert(`Calificación actualizada para ${alumno.nombre} - Unidad ${unit.number}`);
           },
           error: (error) => {
-            console.error('❌ Error al actualizar:', error);
+            console.error('Error al actualizar:', error);
             alert(`Error al actualizar calificación: ${error.message}`);
           }
         });
@@ -438,20 +438,20 @@ export class GradesComponent implements OnInit, OnDestroy {
   // Guardar calificaciones de TODO el grupo
   guardarCalificacionesGrupo(): void {
     if (!this.selectedSubject || this.alumnos.length === 0) {
-      console.log('⚠️ No hay materia seleccionada o alumnos para guardar');
+      console.log('No hay materia seleccionada o alumnos para guardar');
       return;
     }
     
-    console.log('💾 Guardando calificaciones de TODO el grupo');
-    console.log('📚 Materia:', this.selectedSubject);
-    console.log('👥 Alumnos a procesar:', this.alumnos.length);
+    console.log('Guardando calificaciones de TODO el grupo');
+    console.log('Materia:', this.selectedSubject);
+    console.log('Alumnos a procesar:', this.alumnos.length);
     
     let totalGuardados = 0;
     let totalErrores = 0;
     let procesados = 0;
     
     this.alumnos.forEach((alumno, index) => {
-      console.log(`📝 Procesando alumno ${index + 1}/${this.alumnos.length}: ${alumno.nombre}`);
+      console.log(`Procesando alumno ${index + 1}/${this.alumnos.length}: ${alumno.nombre}`);
       
       let guardados = 0;
       let errores = 0;
@@ -478,12 +478,12 @@ export class GradesComponent implements OnInit, OnDestroy {
           
           this.gradesService.createGrade(gradeData).subscribe({
             next: (response) => {
-              console.log(`✅ ${alumno.nombre} - Unidad ${unit.number} guardada`);
+              console.log(`${alumno.nombre} - Unidad ${unit.number} guardada`);
               guardados++;
               totalGuardados++;
             },
             error: (error) => {
-              console.error(`❌ ${alumno.nombre} - Error unidad ${unit.number}:`, error);
+              console.error(`${alumno.nombre} - Error unidad ${unit.number}:`, error);
               errores++;
               totalErrores++;
               
@@ -495,8 +495,8 @@ export class GradesComponent implements OnInit, OnDestroy {
             complete: () => {
               procesados++;
               if (procesados === this.alumnos.length) {
-                console.log(`✅ Proceso completado: ${totalGuardados} guardados, ${totalErrores} errores`);
-                alert(`Calificaciones del grupo guardadas:\n✅ ${totalGuardados} calificaciones guardadas\n❌ ${totalErrores} errores`);
+                console.log(`Proceso completado: ${totalGuardados} guardados, ${totalErrores} errores`);
+                alert(`Calificaciones del grupo guardadas:\n${totalGuardados} calificaciones guardadas\n${totalErrores} errores`);
               }
             }
           });
@@ -508,20 +508,20 @@ export class GradesComponent implements OnInit, OnDestroy {
   // Actualizar calificaciones de TODO el grupo
   actualizarCalificacionesGrupo(): void {
     if (!this.selectedSubject || this.alumnos.length === 0) {
-      console.log('⚠️ No hay materia seleccionada o alumnos para actualizar');
+      console.log('No hay materia seleccionada o alumnos para actualizar');
       return;
     }
     
-    console.log('🔄 Actualizando calificaciones de TODO el grupo');
-    console.log('📚 Materia:', this.selectedSubject);
-    console.log('👥 Alumnos a procesar:', this.alumnos.length);
+    console.log('Actualizando calificaciones de TODO el grupo');
+    console.log('Materia:', this.selectedSubject);
+    console.log('Alumnos a procesar:', this.alumnos.length);
     
     let totalActualizados = 0;
     let totalErrores = 0;
     let procesados = 0;
     
     this.alumnos.forEach((alumno, index) => {
-      console.log(`📝 Procesando alumno ${index + 1}/${this.alumnos.length}: ${alumno.nombre}`);
+      console.log(`Procesando alumno ${index + 1}/${this.alumnos.length}: ${alumno.nombre}`);
       
       let actualizados = 0;
       let errores = 0;
@@ -547,33 +547,33 @@ export class GradesComponent implements OnInit, OnDestroy {
             grade: gradeNumber
           };
           
-          console.log(`📤 Actualizando ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue} (ID: ${existingGradeId})`);
+          console.log(`Actualizando ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue} (ID: ${existingGradeId})`);
           
           this.gradesService.updateGrade(existingGradeId, gradeData).subscribe({
             next: (response) => {
-              console.log(`✅ ${alumno.nombre} - Unidad ${unit.number} actualizada`);
+              console.log(`${alumno.nombre} - Unidad ${unit.number} actualizada`);
               actualizados++;
               totalActualizados++;
             },
             error: (error) => {
-              console.error(`❌ ${alumno.nombre} - Error actualizando unidad ${unit.number}:`, error);
+              console.error(`${alumno.nombre} - Error actualizando unidad ${unit.number}:`, error);
               errores++;
               totalErrores++;
             },
             complete: () => {
               procesados++;
               if (procesados === this.alumnos.length) {
-                console.log(`✅ Proceso completado: ${totalActualizados} actualizados, ${totalErrores} errores`);
-                alert(`Calificaciones del grupo actualizadas:\n✅ ${totalActualizados} calificaciones actualizadas\n❌ ${totalErrores} errores`);
+                console.log(`Proceso completado: ${totalActualizados} actualizados, ${totalErrores} errores`);
+                alert(`Calificaciones del grupo actualizadas:\n${totalActualizados} calificaciones actualizadas\n${totalErrores} errores`);
               }
             }
           });
         } else if (gradeValue > 0 && !existingGradeId) {
-          console.log(`⚠️ ${alumno.nombre} - Unidad ${unit.number}: No existe ID de calificación para actualizar`);
+          console.log(`${alumno.nombre} - Unidad ${unit.number}: No existe ID de calificación para actualizar`);
           errores++;
           totalErrores++;
         } else {
-          console.log(`⏭️ ${alumno.nombre} - Unidad ${unit.number}: Saltando (valor 0 o sin ID)`);
+          console.log(`${alumno.nombre} - Unidad ${unit.number}: Saltando (valor 0 o sin ID)`);
         }
       });
     });
@@ -616,11 +616,11 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   private intentarActualizarCalificacion(studentId: number, subjectId: number, unitNumber: number, gradeValue: number, savedCount: number, errorCount: number): void {
-    console.log('🔄 Intentando actualizar calificación existente...');
+    console.log('Intentando actualizar calificación existente...');
     
     // Validar que la calificación esté en el rango correcto (0-10)
     if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 10) {
-      console.error(`❌ Calificación inválida para actualizar: ${gradeValue}`);
+      console.error(`Calificación inválida para actualizar: ${gradeValue}`);
       alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
       errorCount++;
       return;
@@ -633,7 +633,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         const existingGrade = grades.find((g: any) => g.unit_number === unitNumber);
         
         if (existingGrade && existingGrade.id) {
-          console.log('📝 Encontrada calificación existente, actualizando...');
+          console.log('Encontrada calificación existente, actualizando...');
           
           const updateData = {
             student_id: studentId,
@@ -644,7 +644,7 @@ export class GradesComponent implements OnInit, OnDestroy {
           
           this.gradesService.updateGrade(existingGrade.id, updateData).subscribe({
             next: (response) => {
-              console.log(`✅ Calificación actualizada para unidad ${unitNumber}:`, response);
+              console.log(`Calificación actualizada para unidad ${unitNumber}:`, response);
               savedCount++;
               
               // Si es la última unidad, mostrar resumen
@@ -653,7 +653,7 @@ export class GradesComponent implements OnInit, OnDestroy {
               }
             },
             error: (updateError) => {
-              console.error(`❌ Error al actualizar calificación para unidad ${unitNumber}:`, updateError);
+              console.error(`Error al actualizar calificación para unidad ${unitNumber}:`, updateError);
               errorCount++;
               
               // Si es la última unidad, mostrar resumen
@@ -663,7 +663,7 @@ export class GradesComponent implements OnInit, OnDestroy {
             }
           });
         } else {
-          console.log('⚠️ No se encontró calificación existente para actualizar');
+          console.log('No se encontró calificación existente para actualizar');
           errorCount++;
           
           // Si es la última unidad, mostrar resumen
@@ -673,7 +673,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('❌ Error al obtener calificaciones existentes:', error);
+        console.error('Error al obtener calificaciones existentes:', error);
         errorCount++;
         
         // Si es la última unidad, mostrar resumen
@@ -711,8 +711,8 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   recargarDatos(): void {
-    console.log('🔄 Recargando datos desde la API...');
-    console.log('📊 Estado actual:', {
+    console.log('Recargando datos desde la API...');
+    console.log('Estado actual:', {
       selectedGroup: this.selectedGroup,
       selectedSubject: this.selectedSubject,
       currentTeacher: this.currentTeacher
@@ -724,7 +724,7 @@ export class GradesComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     
     if (this.selectedGroup && this.selectedSubject) {
-      console.log('✅ Recargando datos para grupo y materia seleccionados...');
+      console.log('Recargando datos para grupo y materia seleccionados...');
       // Recargar alumnos del grupo
       this.cargarAlumnosDelGrupo();
       // Recargar calificaciones
@@ -732,14 +732,14 @@ export class GradesComponent implements OnInit, OnDestroy {
         this.cargarCalificacionesPorMateria();
       }, 500);
     } else if (this.selectedGroup) {
-      console.log('✅ Recargando datos para grupo seleccionado...');
+      console.log('Recargando datos para grupo seleccionado...');
       this.cargarAlumnosDelGrupo();
     } else {
-      console.log('✅ Recargando todos los datos del profesor...');
+      console.log('Recargando todos los datos del profesor...');
       this.cargarDatosDelProfesor();
     }
     
-    console.log('✅ Recarga completada');
+    console.log('Recarga completada');
   }
 
   changeTab(tab: string): void {
@@ -765,12 +765,12 @@ export class GradesComponent implements OnInit, OnDestroy {
     
     this.gradesService.getStudentsByGroupDetailed(parseInt(this.selectedGroup)).subscribe({
       next: (data) => {
-        console.log('📊 Información del grupo:', data);
-        console.log(`👥 Total de estudiantes en el grupo: ${data.totalStudents}`);
-        console.log(`📚 Grupo: ${data.group.name}`);
+        console.log('Información del grupo:', data);
+        console.log(`Total de estudiantes en el grupo: ${data.totalStudents}`);
+        console.log(`Grupo: ${data.group.name}`);
       },
       error: (error) => {
-        console.error('❌ Error al obtener información del grupo:', error);
+        console.error('Error al obtener información del grupo:', error);
       }
     });
   }

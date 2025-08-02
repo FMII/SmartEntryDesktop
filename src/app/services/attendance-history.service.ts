@@ -109,7 +109,7 @@ export class AttendanceHistoryService {
     const cached = this.cache.get(cacheKey);
     
     if (cached && this.isCacheValid(cached.timestamp)) {
-      console.log('💾 Grupos desde cache:', cached.data);
+              console.log('Grupos desde cache:', cached.data);
       return of(cached.data);
     }
 
@@ -131,7 +131,7 @@ export class AttendanceHistoryService {
           }
         }
         
-        console.log('✅ Grupos procesados:', processedResponse);
+        console.log('Grupos procesados:', processedResponse);
         
         this.cache.set(cacheKey, { data: processedResponse, timestamp: Date.now() });
         return processedResponse;
@@ -146,7 +146,7 @@ export class AttendanceHistoryService {
     const cached = this.cache.get(cacheKey);
     
     if (cached && this.isCacheValid(cached.timestamp)) {
-      console.log('💾 Materias desde cache:', cached.data);
+              console.log('Materias desde cache:', cached.data);
       return of(cached.data);
     }
 
@@ -168,7 +168,7 @@ export class AttendanceHistoryService {
           }
         }
         
-        console.log('✅ Materias procesadas:', processedResponse);
+        console.log('Materias procesadas:', processedResponse);
         
         this.cache.set(cacheKey, { data: processedResponse, timestamp: Date.now() });
         return processedResponse;
@@ -212,7 +212,7 @@ export class AttendanceHistoryService {
           }
         }
         
-        console.log('✅ Historial procesado:', processedResponse);
+        console.log('Historial procesado:', processedResponse);
         
         return processedResponse;
       }),
@@ -292,11 +292,11 @@ export class AttendanceHistoryService {
           }
         }
         
-        console.log('✅ Asignaciones del profesor obtenidas:', assignments);
+        console.log('Asignaciones del profesor obtenidas:', assignments);
         return assignments;
       }),
       catchError((error: any) => {
-        console.error('❌ Error al obtener asignaciones del profesor:', error);
+        console.error('Error al obtener asignaciones del profesor:', error);
         return of([]); // Devolver array vacío en caso de error
       }),
       shareReplay(1)
@@ -318,7 +318,7 @@ export class AttendanceHistoryService {
           index === self.findIndex(m => m.id === materia.id)
         );
         
-        console.log('📚 Materias asignadas al profesor:', uniqueMaterias);
+        console.log('Materias asignadas al profesor:', uniqueMaterias);
         return uniqueMaterias;
       })
     );
@@ -339,7 +339,7 @@ export class AttendanceHistoryService {
           index === self.findIndex(g => g.id === grupo.id)
         );
         
-        console.log('👥 Grupos asignados al profesor:', uniqueGrupos);
+        console.log('Grupos asignados al profesor:', uniqueGrupos);
         return uniqueGrupos;
       })
     );
@@ -360,7 +360,7 @@ export class AttendanceHistoryService {
           student.group_id === groupId
         );
         
-        console.log('👥 Alumnos del grupo', groupId, ':', groupStudents);
+        console.log('Alumnos del grupo', groupId, ':', groupStudents);
         return groupStudents;
       }),
       shareReplay(1),
