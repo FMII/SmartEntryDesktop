@@ -7,12 +7,13 @@ import { throwError, Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/academic/login'; // Tu API real
+  private apiUrl = 'https://api.smartentry.space/api/academic'; // Base URL
+  private baseUrl = 'https://api.smartentry.space/api/academic'; // Production URL
 
   constructor(private http: HttpClient) { }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(this.apiUrl, { email, password, client: "desktop" }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password, client: "desktop" }).pipe(
       mergeMap((res) => {
         if (res.status === 'success') {
           if (res.data.token) {
@@ -78,5 +79,35 @@ export class AuthService {
     
     console.log('AuthService.getCurrentUser() - no hay usuario autenticado');
     return null;
+  }
+
+  // Método para solicitar recuperación de contraseña
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/forgot-password`, { email }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        let errorMsg = 'Error al enviar correo de recuperación';
+        if (error.error && error.error.msg) {
+          errorMsg = error.error.msg;
+        }
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+  }
+
+  // Método para resetear la contraseña
+  resetPassword(email: string, token: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/reset-password`, { 
+      email, 
+      token, 
+      newPassword 
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        let errorMsg = 'Error al resetear la contraseña';
+        if (error.error && error.error.msg) {
+          errorMsg = error.error.msg;
+        }
+        return throwError(() => new Error(errorMsg));
+      })
+    );
   }
 }
