@@ -16,7 +16,7 @@ export class SidebarComponent {
   isSidebarCollapsed = false;
 
   constructor(private auth: AuthService, private router: Router) {
-    console.log('🏗️ SidebarComponent constructor ejecutado');
+    console.log('SidebarComponent constructor ejecutado');
   }
 
   toggleSidebar() {
@@ -25,7 +25,7 @@ export class SidebarComponent {
   }
 
   logout() {
-    console.log('🚪 Logout ejecutado desde sidebar');
+    console.log('Logout ejecutado desde sidebar');
     this.auth.logout();
     this.router.navigate(['/login']);
   }

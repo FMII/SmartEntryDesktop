@@ -37,19 +37,19 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {
-    console.log('🏗️ TeachersScheduleComponent constructor ejecutado');
+    console.log('TeachersScheduleComponent constructor ejecutado');
   }
 
   ngOnInit(): void {
-    console.log('🚀 TeachersScheduleComponent ngOnInit iniciado');
-    console.log('📍 URL actual:', window.location.href);
+    console.log('TeachersScheduleComponent ngOnInit iniciado');
+    console.log('URL actual:', window.location.href);
     
     // Verificar autenticación
     const currentUser = this.authService.getCurrentUser();
-    console.log('👤 Usuario actual en horario:', currentUser);
-    console.log('🔑 localStorage userId:', localStorage.getItem('userId'));
-    console.log('📧 localStorage email:', localStorage.getItem('email'));
-    console.log('🎫 localStorage token:', localStorage.getItem('token'));
+    console.log('Usuario actual en horario:', currentUser);
+    console.log('localStorage userId:', localStorage.getItem('userId'));
+    console.log('localStorage email:', localStorage.getItem('email'));
+    console.log('localStorage token:', localStorage.getItem('token'));
     
     if (!currentUser) {
       console.log('No hay usuario autenticado en horario. Por favor:');

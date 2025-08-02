@@ -117,9 +117,9 @@ export class AttendanceHistoryService {
     return this.http.get<{data: Grupo[]}>(`${this.apiUrl}/groups/list`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta raw de grupos:', response);
-        console.log('📊 Tipo de respuesta:', typeof response);
-        console.log('📋 Es array?', Array.isArray(response));
+        console.log('Respuesta raw de grupos:', response);
+        console.log('Tipo de respuesta:', typeof response);
+        console.log('Es array?', Array.isArray(response));
         
         // Extraer data del objeto de respuesta
         let processedResponse: Grupo[] = [];
@@ -154,9 +154,9 @@ export class AttendanceHistoryService {
     return this.http.get<{data: Materia[]}>(`${this.apiUrl}/subjects`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta raw de materias:', response);
-        console.log('📊 Tipo de respuesta:', typeof response);
-        console.log('📋 Es array?', Array.isArray(response));
+        console.log('Respuesta raw de materias:', response);
+        console.log('Tipo de respuesta:', typeof response);
+        console.log('Es array?', Array.isArray(response));
         
         // Extraer data del objeto de respuesta
         let processedResponse: Materia[] = [];
@@ -197,7 +197,7 @@ export class AttendanceHistoryService {
     return this.http.get<{data: Asistencia[]}>(`${this.apiUrl}/attendance`, { params }).pipe(
       timeout(15000),
       map(response => {
-        console.log('📦 Respuesta raw de historial:', response);
+        console.log('Respuesta raw de historial:', response);
         
         // Extraer data del objeto de respuesta
         let processedResponse: Asistencia[] = [];
@@ -275,7 +275,7 @@ export class AttendanceHistoryService {
     return this.http.get<any>(`${this.apiUrl}/teacher-subject-groups/teacher/${teacherId}`).pipe(
       timeout(10000),
       map((res: any) => {
-        console.log('📡 Respuesta raw de asignaciones:', res);
+        console.log('Respuesta raw de asignaciones:', res);
         
         // Asegurar que siempre devuelva un array
         let assignments: any[] = [];
@@ -351,7 +351,7 @@ export class AttendanceHistoryService {
     return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
       timeout(10000),
       map(response => {
-        console.log('📦 Respuesta todos los estudiantes:', response);
+        console.log('Respuesta todos los estudiantes:', response);
         const allStudents = response?.data || [];
         const students = Array.isArray(allStudents) ? allStudents : [];
         

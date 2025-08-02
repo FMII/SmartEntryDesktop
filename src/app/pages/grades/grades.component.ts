@@ -359,7 +359,7 @@ export class GradesComponent implements OnInit, OnDestroy {
         // Validar que la calificación esté en el rango correcto (0-10)
         const gradeNumber = parseFloat(gradeValue);
         if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
-          console.error(`❌ Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
+          console.error(`Calificación inválida para ${alumno.nombre} - Unidad ${unit.number}: ${gradeValue}`);
           alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
           return;
         }

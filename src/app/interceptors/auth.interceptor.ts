@@ -17,9 +17,9 @@ export const authInterceptor: HttpInterceptorFn = (
   
   // Clonar la solicitud con el token si existe
   const token = localStorage.getItem('token');
-  console.log('🔍 Interceptor - URL:', req.url);
-  console.log('🔍 Interceptor - Token disponible:', !!token);
-  console.log('🔍 Interceptor - Token completo:', token);
+  console.log('Interceptor - URL:', req.url);
+  console.log('Interceptor - Token disponible:', !!token);
+  console.log('Interceptor - Token completo:', token);
   
   const authReq = token ? req.clone({
     setHeaders: {
@@ -38,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (
       
       // Solo cerrar sesión automáticamente para errores de autenticación críticos
       if (error.status === 401) {
-        console.log('🚪 Interceptor - Error 401 detectado, cerrando sesión automáticamente');
+        console.log('Interceptor - Error 401 detectado, cerrando sesión automáticamente');
         localStorage.removeItem('token');
         router.navigateByUrl('/login').then(() => {
           window.location.reload();
