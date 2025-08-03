@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { GradesService } from '../../services/grades.service';
 import { AuthService } from '../../services/auth.service';
 import { forkJoin, interval, Subscription, Observable, of } from 'rxjs';
@@ -12,7 +11,7 @@ import { takeWhile } from 'rxjs/operators';
   standalone: true,
   templateUrl: './grades.component.html',
   styleUrls: ['./grades.component.css'],
-  imports: [CommonModule, FormsModule, RouterLink]
+  imports: [CommonModule, FormsModule]
 })
 export class GradesComponent implements OnInit, OnDestroy {
   grupos: any[] = [];
@@ -33,6 +32,14 @@ export class GradesComponent implements OnInit, OnDestroy {
   
   // Propiedad para controlar visibilidad del dropdown de materias
   showSubjectDropdown: boolean = false;
+  
+  // Propiedades para el formulario de calificaciones
+  mostrarFormulario: boolean = false;
+  formulario = {
+    student_id: '',
+    unit_number: 1,
+    grade: 0
+  };
 
   constructor(
     private gradesService: GradesService,
@@ -169,7 +176,10 @@ export class GradesComponent implements OnInit, OnDestroy {
       next: (config) => {
         
         this.selectedSubjectConfig = config;
-        this.subjectUnits = config.units || [];
+        // Siempre iniciar con solo una unidad
+        this.subjectUnits = [
+          { number: 1, name: 'Unidad' }
+        ];
         
         // Reinicializar las unidades dinámicas para todos los alumnos
         this.alumnos.forEach(alumno => {
@@ -182,14 +192,10 @@ export class GradesComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error al cargar configuración de materia:', error);
-        console.log('Usando unidades por defecto...');
-        // Usar unidades por defecto si hay error
+        console.log('Iniciando con unidad básica...');
+        // Siempre iniciar con solo una unidad
         this.subjectUnits = [
-          { number: 1, name: 'Unidad 1' },
-          { number: 2, name: 'Unidad 2' },
-          { number: 3, name: 'Unidad 3' },
-          { number: 4, name: 'Unidad 4' },
-          { number: 5, name: 'Unidad 5' }
+          { number: 1, name: 'Unidad' }
         ];
         this.cargarCalificacionesPorMateria();
       }
@@ -267,6 +273,9 @@ export class GradesComponent implements OnInit, OnDestroy {
     forkJoin(requests).subscribe({
       next: (gradesArr) => {
         
+        const unidadesExistentes = new Set<number>();
+        
+        // Procesar calificaciones y recopilar unidades existentes
         this.alumnos = this.alumnos.map((alumno: any, idx: number) => {
           const gradesResponse = gradesArr[idx] as any;
           const grades = gradesResponse?.data?.grades || gradesResponse?.grades || gradesResponse || [];
@@ -278,23 +287,52 @@ export class GradesComponent implements OnInit, OnDestroy {
             gradeId: null
           };
           
-          // Cargar calificaciones dinámicas para cada unidad
-          this.subjectUnits.forEach(unit => {
-            const unitGrade = grades.find((g: any) => g.unit_number === unit.number);
-            updatedAlumno[`u${unit.number}`] = unitGrade?.grade || 0;
-            if (unitGrade?.id) {
-              updatedAlumno[`gradeId${unit.number}`] = unitGrade.id; // Guardar ID por unidad
+          // Procesar cada calificación y recopilar unidades
+          grades.forEach((grade: any) => {
+            if (grade.unit_number) {
+              unidadesExistentes.add(grade.unit_number);
+              updatedAlumno[`u${grade.unit_number}`] = grade.grade || 0;
+              updatedAlumno[`gradeId${grade.unit_number}`] = grade.id;
             }
           });
           
           return updatedAlumno;
         });
         
+        // Actualizar unidades dinámicamente
+        if (unidadesExistentes.size > 0) {
+          const unidadesArray = Array.from(unidadesExistentes).sort((a, b) => a - b);
+          this.subjectUnits = unidadesArray.map(unitNumber => ({
+            number: unitNumber,
+            name: 'Unidad'
+          }));
+        } else {
+          // Si no hay unidades, mantener al menos una
+          this.subjectUnits = [{ number: 1, name: 'Unidad' }];
+        }
+        
+        // Inicializar campos faltantes para todas las unidades
+        this.alumnos = this.alumnos.map((alumno: any) => {
+          this.subjectUnits.forEach(unit => {
+            if (alumno[`u${unit.number}`] === undefined) {
+              alumno[`u${unit.number}`] = 0;
+            }
+            if (alumno[`gradeId${unit.number}`] === undefined) {
+              alumno[`gradeId${unit.number}`] = null;
+            }
+          });
+          return alumno;
+        });
+        
+        console.log('Unidades dinámicas:', this.subjectUnits);
         this.filtrarAlumnos();
       },
       error: (error) => {
         console.error('Error al cargar calificaciones:', error);
         console.log('No se pudieron cargar calificaciones de la API, inicializando en 0...');
+        
+        // En caso de error, mantener una unidad básica
+        this.subjectUnits = [{ number: 1, name: 'Unidad' }];
         
         // En caso de error, inicializar calificaciones en 0
         this.alumnos = this.alumnos.map((alumno: any) => {
@@ -341,19 +379,98 @@ export class GradesComponent implements OnInit, OnDestroy {
     return Math.round(promedio * 100) / 100; // Redondea a 2 decimales
   }
 
+  // Método para guardar una calificación específica
+  guardarCalificacionEspecifica(alumno: any, unitNumber: number): void {
+    if (!this.selectedSubject) {
+      alert('Por favor selecciona una materia');
+      return;
+    }
+
+    const gradeValue = alumno[`u${unitNumber}`];
+    const gradeId = alumno[`gradeId${unitNumber}`];
+    
+    if (gradeValue === undefined || gradeValue === null || gradeValue === '') {
+      alert('Por favor ingresa una calificación válida');
+      return;
+    }
+
+    // Validar que la calificación esté en el rango correcto (0-10)
+    const gradeNumber = parseFloat(gradeValue);
+    if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+      console.error(`Calificación inválida para ${alumno.nombre} - Unidad ${unitNumber}: ${gradeValue}`);
+      alert(`Error: La calificación debe estar entre 0 y 10. Valor actual: ${gradeValue}`);
+      return;
+    }
+
+    const data = {
+      student_id: parseInt(alumno.id),
+      subject_id: parseInt(this.selectedSubject),
+      unit_number: unitNumber,
+      grade: gradeNumber
+    };
+
+    console.log('Enviando datos para unidad específica:', data);
+
+    // Si ya existe un gradeId, actualizar. Si no, crear nuevo
+    if (gradeId) {
+      console.log('Actualizando calificación existente con ID:', gradeId);
+      this.gradesService.updateGrade(parseInt(gradeId), data).subscribe({
+        next: (response) => {
+          console.log('Calificación actualizada:', response);
+          alert(`Calificación actualizada para ${alumno.nombre} - Unidad ${unitNumber}`);
+        },
+        error: (error) => {
+          console.error('Error al actualizar:', error);
+          alert(`Error al actualizar calificación: ${error.message}`);
+        }
+      });
+    } else {
+      console.log('Creando nueva calificación');
+      this.gradesService.createGrade(data).subscribe({
+        next: (response) => {
+          console.log('Calificación guardada:', response);
+          alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unitNumber}`);
+          // Actualizar el gradeId en el objeto alumno
+          if (response && response.id) {
+            alumno[`gradeId${unitNumber}`] = response.id;
+          }
+        },
+        error: (error) => {
+          console.error('Error al guardar:', error);
+          alert(`Error al guardar calificación: ${error.message}`);
+        }
+      });
+    }
+  }
+
   guardarCalificaciones(alumno: any): void {
     if (!this.selectedSubject) {
       alert('Por favor selecciona una materia');
       return;
     }
 
-    console.log('Guardando calificaciones para:', alumno.nombre);
+    console.log('Guardando todas las calificaciones para:', alumno.nombre);
     console.log('Materia seleccionada:', this.selectedSubject);
+
+    let calificacionesGuardadas = 0;
+    let totalCalificaciones = 0;
+
+    // Contar calificaciones válidas para mostrar un solo mensaje
+    this.subjectUnits.forEach(unit => {
+      const gradeValue = alumno[`u${unit.number}`];
+      if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
+        totalCalificaciones++;
+      }
+    });
+
+    if (totalCalificaciones === 0) {
+      alert('No hay calificaciones para guardar');
+      return;
+    }
 
     this.subjectUnits.forEach(unit => {
       const gradeValue = alumno[`u${unit.number}`];
       const gradeId = alumno[`gradeId${unit.number}`];
-      console.log(`Unidad ${unit.number}: ${gradeValue}, ID existente: ${gradeId}`);
       
       if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
         // Validar que la calificación esté en el rango correcto (0-10)
@@ -371,31 +488,36 @@ export class GradesComponent implements OnInit, OnDestroy {
           grade: gradeNumber
         };
 
-        console.log('Enviando datos:', data);
-
         // Si ya existe un gradeId, actualizar. Si no, crear nuevo
         if (gradeId) {
-          console.log('Actualizando calificación existente con ID:', gradeId);
           this.gradesService.updateGrade(parseInt(gradeId), data).subscribe({
             next: (response) => {
               console.log('Calificación actualizada:', response);
-              alert(`Calificación actualizada para ${alumno.nombre} - Unidad ${unit.number}`);
+              calificacionesGuardadas++;
+              if (calificacionesGuardadas === totalCalificaciones) {
+                alert(`Todas las calificaciones han sido guardadas para ${alumno.nombre}`);
+              }
             },
             error: (error) => {
               console.error('Error al actualizar:', error);
-              alert(`Error al actualizar calificación: ${error.message}`);
+              alert(`Error al actualizar calificación unidad ${unit.number}: ${error.message}`);
             }
           });
         } else {
-          console.log('Creando nueva calificación');
           this.gradesService.createGrade(data).subscribe({
             next: (response) => {
               console.log('Calificación guardada:', response);
-              alert(`Calificación guardada para ${alumno.nombre} - Unidad ${unit.number}`);
+              if (response && response.id) {
+                alumno[`gradeId${unit.number}`] = response.id;
+              }
+              calificacionesGuardadas++;
+              if (calificacionesGuardadas === totalCalificaciones) {
+                alert(`Todas las calificaciones han sido guardadas para ${alumno.nombre}`);
+              }
             },
             error: (error) => {
               console.error('Error al guardar:', error);
-              alert(`Error al guardar calificación: ${error.message}`);
+              alert(`Error al guardar calificación unidad ${unit.number}: ${error.message}`);
             }
           });
         }
@@ -825,5 +947,117 @@ export class GradesComponent implements OnInit, OnDestroy {
   isUpdating(studentId: number): boolean {
     // Implementación simple - puedes expandir esto según tus necesidades
     return false;
+  }
+
+  // Métodos para el formulario de calificaciones
+  abrirFormularioCalificacion(): void {
+    this.mostrarFormulario = true;
+    this.formulario = {
+      student_id: '',
+      unit_number: 1,
+      grade: 0
+    };
+  }
+
+  cerrarFormulario(): void {
+    this.mostrarFormulario = false;
+    this.formulario = {
+      student_id: '',
+      unit_number: 1,
+      grade: 0
+    };
+  }
+
+  guardarNuevaCalificacion(): void {
+    if (!this.selectedSubject) {
+      alert('Por favor selecciona una materia');
+      return;
+    }
+
+    if (!this.formulario.student_id || !this.formulario.unit_number || this.formulario.grade === null || this.formulario.grade === undefined) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    // Validar que la calificación esté en el rango correcto (0-10)
+    const gradeNumber = parseFloat(this.formulario.grade.toString());
+    if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+      alert('Error: La calificación debe estar entre 0 y 10');
+      return;
+    }
+
+    const data = {
+      student_id: parseInt(this.formulario.student_id),
+      subject_id: parseInt(this.selectedSubject),
+      unit_number: parseInt(this.formulario.unit_number.toString()),
+      grade: gradeNumber
+    };
+
+    console.log('Subiendo nueva calificación:', data);
+
+    this.gradesService.createGrade(data).subscribe({
+      next: (response) => {
+        console.log('Calificación subida:', response);
+        alert('Calificación subida correctamente');
+        
+        // Cerrar el formulario
+        this.cerrarFormulario();
+        
+        // Recargar las calificaciones para mostrar los cambios
+        this.actualizarUnidadesExistentes();
+        this.cargarCalificacionesPorMateria();
+      },
+      error: (error) => {
+        console.error('Error al subir calificación:', error);
+        if (error.message && error.message.includes('Ya existe una calificación')) {
+          alert('Ya existe una calificación para este estudiante en esta unidad. Usa el botón de actualizar en la tabla.');
+        } else {
+          alert(`Error al subir calificación: ${error.message || 'Error desconocido'}`);
+        }
+      }
+    });
+  }
+
+  // Método para actualizar las unidades dinámicamente
+  actualizarUnidadesExistentes(): void {
+    if (!this.selectedSubject || this.alumnos.length === 0) return;
+
+    // Obtener todas las unidades existentes en las calificaciones
+    const requests = this.alumnos.map((alumno: any) =>
+      this.gradesService.getGradesByStudentAndSubject(alumno.id, this.selectedSubject)
+    );
+
+    forkJoin(requests).subscribe({
+      next: (gradesArr) => {
+        const unidadesExistentes = new Set<number>();
+
+        // Recopilar todas las unidades que existen
+        gradesArr.forEach((gradesResponse: any) => {
+          const grades = gradesResponse?.data?.grades || gradesResponse?.grades || gradesResponse || [];
+          grades.forEach((grade: any) => {
+            if (grade.unit_number) {
+              unidadesExistentes.add(grade.unit_number);
+            }
+          });
+        });
+
+        // Crear el array de unidades dinámicamente
+        if (unidadesExistentes.size > 0) {
+          const unidadesArray = Array.from(unidadesExistentes).sort((a, b) => a - b);
+          this.subjectUnits = unidadesArray.map(unitNumber => ({
+            number: unitNumber,
+            name: 'Unidad'
+          }));
+        } else {
+          // Si no hay unidades, mantener al menos una
+          this.subjectUnits = [{ number: 1, name: 'Unidad' }];
+        }
+
+        console.log('Unidades actualizadas:', this.subjectUnits);
+      },
+      error: (error) => {
+        console.error('Error al actualizar unidades:', error);
+      }
+    });
   }
 }

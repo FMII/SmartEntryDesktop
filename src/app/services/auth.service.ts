@@ -9,7 +9,7 @@ import { throwError, Observable, of } from 'rxjs';
 export class AuthService {
   // private apiUrl = 'https://api.smartentry.space/api/academic'; // Base URL
   // private baseUrl = 'https://api.smartentry.space/api/academic'; // Production URL
-  private API_URL = 'http://localhost:3000/api/academic';
+  private API_URL = 'https://api.smartentry.space/api/academic';
 
   constructor(private http: HttpClient) { }
 

@@ -6,9 +6,8 @@ export const noAuthGuard: CanActivateFn = (route, state) => {
   const token = localStorage.getItem('token');
 
   if (token) {
-    // Usando el Router de Angular en lugar de window.location
-    return router.createUrlTree(['/usermanagement']);
-    
+    // Redirigir al dashboard si ya está autenticado
+    return router.createUrlTree(['/dashboard']);
   }
   
   return true;

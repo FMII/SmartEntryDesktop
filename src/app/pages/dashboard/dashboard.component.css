@@ -34,7 +34,45 @@
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.date-input {
+/* ===== CONTENIDO PRINCIPAL ===== */
+.content-body {
+    flex: 1;
+    padding: 24px 32px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* ===== FILTROS ===== */
+.filters-container {
+    margin-bottom: 16px;
+    background: #F9FAFB;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-input {
     padding: 12px 16px;
     border: 1px solid #D1D5DB;
     border-radius: 8px;
@@ -45,18 +83,10 @@
     transition: all 0.2s ease;
 }
 
-.date-input:focus {
+.filter-input:focus {
     outline: none;
     border-color: #262626;
     box-shadow: 0 0 0 3px rgba(38, 38, 38, 0.1);
-}
-
-/* ===== CONTENIDO PRINCIPAL ===== */
-.content-body {
-    flex: 1;
-    padding: 24px 32px;
-    overflow-y: auto;
-    min-height: 0;
 }
 
 .content-card {
@@ -188,6 +218,14 @@
     font-size: 18px;
     font-weight: 600;
     color: #0A0A0A;
+    margin: 0 0 4px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.chart-subtitle {
+    font-size: 14px;
+    font-weight: 400;
+    color: #6B7280;
     margin: 0;
     font-family: 'Poppins', sans-serif;
 }
@@ -496,41 +534,126 @@
 }
 
 /* ===== FOCUS VISIBLE ===== */
-.date-input:focus-visible,
-.filter-select:focus-visible,
+.filter-input:focus-visible,
 .control-btn:focus-visible,
 .tab-btn:focus-visible {
     outline: 2px solid #262626;
     outline-offset: 2px;
 }
 
-/* ===== INDICADOR DE FILTRO POR FECHA ===== */
-.date-filter-indicator {
-    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin: 16px 0;
+/* ===== CHART MAIN CONTAINER ===== */
+.chart-main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    height: 100%;
+    min-height: 0;
+}
+
+.chart-wrapper {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    position: relative;
+}
+
+.chart-main-container .chart-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.chart-main-container .chart-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0A0A0A;
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.chart-main-container .chart-subtitle {
+    font-size: 14px;
+    font-weight: 400;
+    color: #6B7280;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.chart-main-container .chart-wrapper {
+    flex: 1;
+    min-height: 400px;
+    position: relative;
+}
+
+/* ===== NAVIGATION BUTTONS ===== */
+.navigation-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+.nav-btn {
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: white;
+    color: #6B7280;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-    animation: fadeIn 0.3s ease-in-out;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
 }
 
-.date-filter-indicator i {
+.nav-btn:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+    color: #374151;
+}
+
+.nav-btn.active {
+    background: #262626;
+    border-color: #262626;
+    color: white;
+}
+
+.nav-btn i {
     font-size: 16px;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+@media (max-width: 768px) {
+    .navigation-buttons {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        border-radius: 0;
+        justify-content: center;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .nav-btn .btn-text {
+        display: none;
+    }
+    
+    .nav-btn {
+        padding: 16px;
+        min-width: 48px;
+        justify-content: center;
     }
 }

@@ -2,101 +2,30 @@
 <div class="dashboard-content">
     <!-- Header -->
     <header class="content-header">
-        <h1 class="header-title">Panel de Asistencia</h1>
-        <input type="date" class="date-input" (change)="onFechaFiltroChange($event)">
+        <h1 class="header-title">Estudiantes con más ausencias por grupo</h1>
     </header>
 
     <!-- Contenido principal -->
     <div class="content-body">
-        <div class="content-card">
-            <!-- Tabs y controles -->
-            <div class="tabs-container">
-                <div class="tabs-row">
-                    <!-- Tabs -->
-                    <div class="tabs-group">
-                        <button class="tab-btn" [class.active]="vista === 'grafica'" (click)="setVista('grafica')">
-                            <i class="ti ti-chart-bar"></i>
-                            <span class="btn-text">Gráfica</span>
-                        </button>
-                        <button class="tab-btn" [class.active]="vista === 'tabla'" (click)="setVista('tabla')">
-                            <i class="ti ti-table"></i>
-                            <span class="btn-text">Tabla</span>
-                        </button>
+        <!-- Chart container -->
+        <div class="chart-main-container">
+            <!-- Filtros de fecha -->
+            <div class="filters-container">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label for="startDate" class="filter-label">Fecha inicio:</label>
+                        <input type="date" id="startDate" class="filter-input" [(ngModel)]="fechaInicio" (change)="onFechaChange()">
                     </div>
-
-                    <!-- Controles adicionales -->
-                    <div class="controls-group">
-                        <button (click)="recargarDatos()" 
-                                class="control-btn">
-                            <i class="ti ti-refresh"></i>
-                            <span class="btn-text">Recargar</span>
-                        </button>
+                    <div class="filter-group">
+                        <label for="endDate" class="filter-label">Fecha fin:</label>
+                        <input type="date" id="endDate" class="filter-input" [(ngModel)]="fechaFin" (change)="onFechaChange()">
                     </div>
                 </div>
             </div>
 
-            <!-- Separador -->
-            <div class="separator"></div>
-
-            <!-- Contenido dinámico -->
-            <div class="content-dynamic">
-                <!-- Chart container -->
-                <div *ngIf="vista === 'grafica'" class="chart-container">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Alumnos por grupo con más ausencias</h2>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas #attendanceChart></canvas>
-                    </div>
-                </div>
-
-                <!-- Table container -->
-                <div *ngIf="vista === 'tabla'" class="table-container">
-                    <div class="table-header-section">
-                        <h2 class="table-title">Registro de asistencia</h2>
-                        <div class="table-controls">
-                            <label for="grupoSelect" class="filter-label">Grupo:</label>
-                            <select id="grupoSelect" 
-                                    [(ngModel)]="grupoSeleccionado" 
-                                    (change)="onGrupoChange($event)"
-                                    class="filter-select">
-                                <option *ngFor="let g of grupos" [value]="g.id">{{ g.name }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Indicador de filtro por fecha -->
-                    <div *ngIf="fechaFiltro && fechaFiltro.trim() !== ''" class="date-filter-indicator">
-                        <i class="ti ti-calendar"></i>
-                        <span>Mostrando solo alumnos del {{ fechaFiltro | date:'dd/MM/yyyy' }}</span>
-                    </div>
-
-                    <!-- Tabla con scroll -->
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead class="table-header">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Fecha</th>
-                                    <th>Asistencia</th>
-                                    <th>Grupo</th>
-                                </tr>
-                            </thead>
-                            <tbody class="table-body">
-                                <tr *ngFor="let r of registros" class="table-row">
-                                    <td>{{ r.id }}</td>
-                                    <td>{{ r.first_name || r.user?.first_name }} {{ r.last_name || r.user?.last_name }}</td>
-                                    <td>{{ (r.date || r.fecha) | date:'dd/MM/yyyy' }}</td>
-                                    <td [ngClass]="{'present': (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente', 'absent': (r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente'}">
-                                        {{ (r.status || r.estado) === 'present' || (r.status || r.estado) === 'presente' ? 'Presente' : ((r.status || r.estado) === 'absent' || (r.status || r.estado) === 'ausente' ? 'Ausente' : (r.status || r.estado)) }}
-                                    </td>
-                                    <td>{{ r.grupo }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <!-- Chart wrapper -->
+            <div class="chart-wrapper">
+                <canvas #attendanceChart></canvas>
             </div>
         </div>
     </div>

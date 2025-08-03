@@ -1,47 +1,17 @@
-.twofa-container {
-  @apply text-[#0A0A0A] min-h-screen flex items-center justify-center bg-white px-4;
+/* 2fa.component.css */
+
+/* Animación para el toast de error y éxito */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.twofa-card {
-  @apply bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full;
-}
-
-.twofa-title {
-  @apply text-2xl text-center mb-2;
-}
-
-.twofa-subtitle {
-  @apply text-xs text-center text-gray-500 mb-6;
-}
-
-.twofa-form {
-  @apply space-y-8;
-}
-
-.form-group {
-  @apply mb-6;
-}
-
-.form-label {
-  @apply block text-xs font-medium mb-4;
-}
-
-.form-input {
-  @apply text-xs w-full px-4 py-3 bg-[#FAFAFA] rounded-full focus:outline-none focus:ring-1 focus:ring-black;
-}
-
-.error-message {
-  @apply text-red-500 text-xs text-center;
-}
-
-.success-message {
-  @apply text-green-600 text-xs text-center;
-}
-
-.submit-button {
-  @apply w-full bg-[#262626] text-xs text-white py-3 rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50;
-}
-
-.resend-button {
-  @apply w-full mt-4 bg-white border border-[#262626] text-xs text-[#262626] py-3 rounded-full hover:bg-[#f3f3f3] transition-colors duration-300 disabled:opacity-50;
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
 } 

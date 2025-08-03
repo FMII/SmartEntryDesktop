@@ -42,7 +42,7 @@ export interface EstadisticasAsistencia {
   providedIn: 'root'
 })
 export class AttendanceHistoryService {
-  private apiUrl = 'http://localhost:3000/api/academic'; // Tu API real
+  private apiUrl = 'https://api.smartentry.space/api/academic'; // Tu API real
   private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
@@ -185,34 +185,70 @@ export class AttendanceHistoryService {
     endDate?: string,
     searchTerm?: string
   ): Observable<Asistencia[]> {
+    // Validar que al menos se proporcione un groupId
+    if (!groupId) {
+      console.warn('⚠️ getHistorialAsistencia llamado sin groupId');
+      return of([]);
+    }
+
     const params: any = {};
     
-    if (groupId) params.group_id = groupId;
+    // Usar los nombres de parámetros que espera tu nueva API
     if (subjectId) params.subject_id = subjectId;
-    if (startDate) params.start_date = startDate;
-    if (endDate) params.end_date = endDate;
+    if (startDate) {
+      params.startDate = startDate; // Cambio: start_date -> startDate
+      console.log('📅 Enviando startDate:', startDate, 'Tipo:', typeof startDate);
+    }
+    if (endDate) {
+      params.endDate = endDate; // Cambio: end_date -> endDate
+      console.log('📅 Enviando endDate:', endDate, 'Tipo:', typeof endDate);
+    }
     if (searchTerm) params.search = searchTerm;
 
-    console.log('📡 Enviando GET /api/attendance con params:', params);
-    return this.http.get<{data: Asistencia[]}>(`${this.apiUrl}/attendance`, { params }).pipe(
+    // Usar la nueva ruta con groupId en la URL
+    const url = `${this.apiUrl}/attendance/group/${groupId}`;
+    
+    
+    return this.http.get<any>(url, { params }).pipe(
       timeout(15000),
       map(response => {
-        console.log('Respuesta raw de historial:', response);
+        console.log('Respuesta raw de historial (nueva API):', response);
         
-        // Extraer data del objeto de respuesta
+        // Extraer data del objeto de respuesta según la nueva estructura
         let processedResponse: Asistencia[] = [];
-        if (response && typeof response === 'object') {
-          if (response.data && Array.isArray(response.data)) {
-            processedResponse = response.data;
-          } else if (Array.isArray(response)) {
-            processedResponse = response;
-          } else if (response.data && typeof response.data === 'object') {
-            // Si es un solo registro, convertirlo en array
-            processedResponse = [response.data];
-          }
+        
+        if (response && response.status === 'success' && response.data && Array.isArray(response.data)) {
+          // Procesar cada registro de asistencia
+          processedResponse = response.data.map((item: any) => {
+            // Extraer información del usuario
+            const userData = item.users_attendance_user_idTousers || {};
+            const studentName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+            
+            // Extraer información de la materia
+            const subjectName = item.subjects?.name || 'Sin materia';
+            
+            return {
+              id: item.id,
+              user_id: item.user_id, // Este campo debería venir en la respuesta
+              student_name: studentName,
+              date: item.date,
+              status: item.status,
+              subject_id: subjectId || 0, // Usar el subjectId del parámetro
+              subject_name: subjectName,
+              group_id: groupId, // Usar el groupId del parámetro
+              group_name: '', // Se llenará después con el join en el componente
+              check_in_time: item.check_in_time,
+              sensor_id: item.sensor_id,
+              notes: item.notes
+            } as Asistencia;
+          });
+        } else if (Array.isArray(response)) {
+          // Fallback si la respuesta es directamente un array
+          processedResponse = response;
         }
         
-        console.log('Historial procesado:', processedResponse);
+        console.log('Historial procesado (nueva API):', processedResponse);
+        console.log(`✅ Se procesaron ${processedResponse.length} registros de asistencia`);
         
         return processedResponse;
       }),

@@ -47,7 +47,7 @@ export interface CompleteSchedule {
   providedIn: 'root'
 })
 export class TeachersScheduleService {
-  private apiUrl = 'http://localhost:3000/api/academic'; // Tu API real
+  private apiUrl = 'https://api.smartentry.space/api/academic'; // Tu API real
   private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
@@ -398,16 +398,10 @@ export class TeachersScheduleService {
         // Asegurar que siempre devuelva un array
         let assignments: any[] = [];
         
-        if (res && typeof res === 'object') {
-          if (res.data && res.data.teacherSubjectGroups && Array.isArray(res.data.teacherSubjectGroups)) {
-            assignments = res.data.teacherSubjectGroups;
-          } else if (Array.isArray(res)) {
-            assignments = res;
-          } else if (res.data && Array.isArray(res.data)) {
-            assignments = res.data;
-          } else if (res.assignments && Array.isArray(res.assignments)) {
-            assignments = res.assignments;
-          }
+        if (res && res.status === 'success' && res.data && res.data.teacherSubjectGroups) {
+          assignments = res.data.teacherSubjectGroups;
+        } else if (res && Array.isArray(res)) {
+          assignments = res;
         }
         
         console.log('Asignaciones del profesor obtenidas:', assignments);
@@ -418,6 +412,60 @@ export class TeachersScheduleService {
         return of([]); // Devolver array vacío en caso de error
       }),
       shareReplay(1)
+    );
+  }
+
+  // Método para obtener horarios formateados para mostrar en la tabla
+  getFormattedSchedules(teacherId: number): Observable<any[]> {
+    return this.getTeacherAssignments(teacherId).pipe(
+      map(assignments => {
+        return assignments.map(assignment => {
+          // Formatear tiempo de ISO a HH:MM
+          const formatTime = (timeString: string) => {
+            if (!timeString) return '';
+            try {
+              if (timeString.includes('T')) {
+                // Extraer directamente la parte de tiempo del string ISO
+                // Ejemplo: "1970-01-01T08:00:00.000Z" -> "08:00"
+                const timePart = timeString.split('T')[1];
+                const formattedTime = timePart.slice(0, 5); // HH:MM
+                return formattedTime;
+              }
+              return timeString.slice(0, 5);
+            } catch (error) {
+              console.error('Error formateando tiempo:', timeString, error);
+              return '';
+            }
+          };
+
+          // Traducir días al español
+          const translateDay = (day: string) => {
+            const dayTranslations: { [key: string]: string } = {
+              'Monday': 'Lunes',
+              'Tuesday': 'Martes', 
+              'Wednesday': 'Miércoles',
+              'Thursday': 'Jueves',
+              'Friday': 'Viernes',
+              'Saturday': 'Sábado',
+              'Sunday': 'Domingo'
+            };
+            return dayTranslations[day] || day;
+          };
+
+          return {
+            id: assignment.id,
+            materia: assignment.subjects?.name || '',
+            grupo: assignment.groups?.name || '',
+            inicio: formatTime(assignment.schedules?.start_time || ''),
+            fin: formatTime(assignment.schedules?.end_time || ''),
+            dia: translateDay(assignment.schedules?.weekday || ''),
+            // Propiedades adicionales para filtros
+            subject_id: assignment.subject_id,
+            group_id: assignment.group_id,
+            classroom: assignment.classrooms?.name || ''
+          };
+        });
+      })
     );
   }
 } 

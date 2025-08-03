@@ -94,9 +94,11 @@
   background-color: white;
 }
 
-.sidebar-header i {
-  font-size: 28px;
-  color: #262626;
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .logo-text {
@@ -397,7 +399,8 @@
     font-size: 16px;
   }
   
-  .sidebar-header i {
-    font-size: 24px;
+  .logo-icon {
+    width: 28px;
+    height: 28px;
   }
 }

@@ -1,56 +1,57 @@
 <!-- login.component.html -->
-<div class="login-container">
-  <div class="login-card">
-    <h1 class="login-title">¡Bienvenido Devuelta!</h1>
-    <p class="login-subtitle">
+<div class="text-[#0A0A0A] min-h-screen flex items-center justify-center bg-white px-4">
+  <!-- Toast de error -->
+  <div *ngIf="errorMessage"
+    class="fixed top-6 right-6 bg-red-50 border border-[#DC3545] text-[#DC3545] rounded-xl shadow-lg w-full max-w-sm z-50 animate-fade-in-up">
+    <div class="flex items-start gap-3 p-4">
+      <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+        <i class="ti ti-x text-2xl text-red-600"></i>
+      </div>
+
+      <div class="flex-1">
+        <p class="font-semibold">Error</p>
+        <ul class="text-sm list-disc ps-4">
+          <li *ngIf="errorMessage">{{ errorMessage }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full">
+    <h1 class="text-2xl text-center mb-2">¡Bienvenido Devuelta!</h1>
+    <p class="text-xs text-center text-gray-500 mb-6">
       Inicia sesión para continuar con tus actividades.
     </p>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-8">
       <!-- Correo -->
-      <div class="form-group">
-        <label for="email" class="form-label">Correo</label>
-        <input
-          type="email"
-          id="email"
-          formControlName="email"
-          placeholder="Ingresa tu correo"
-          class="form-input"
-        />
+      <div>
+        <label for="email" class="block text-xs font-medium mb-4">Correo</label>
+        <input type="email" id="email" formControlName="email" placeholder="Ingresa tu correo"
+          class="text-xs w-full px-4 py-3 bg-[#FAFAFA] rounded-full focus:outline-none focus:ring-1 focus:ring-black" />
       </div>
 
       <!-- Contraseña -->
-      <div class="form-group">
-        <label for="password" class="form-label">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          formControlName="password"
-          placeholder="Ingresa tu contraseña"
-          class="form-input"
-        />
+      <div>
+        <label for="password" class="block text-xs font-medium mb-4">Contraseña</label>
+        <input type="password" id="password" formControlName="password" placeholder="Ingresa tu contraseña"
+          class="text-xs w-full px-4 py-3 bg-[#FAFAFA] rounded-full focus:outline-none focus:ring-1 focus:ring-black" />
       </div>
-
-      <!-- Mensaje de error -->
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-
       <!-- Botón -->
-      <button
-        type="submit"
-        [disabled]="loginForm.invalid"
-        class="submit-button"
-      >
+      <button type="submit" [disabled]="loginForm.invalid"
+        class="w-full bg-[#262626] text-xs text-white py-3 rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50">
         Inicia sesión
       </button>
     </form>
-
-    <div class="forgot-password-link">
-      <a routerLink="/forgot-password" class="link-text">¿Olvidaste tu contraseña?</a>
+    
+    <!-- Enlace para olvidé mi contraseña -->
+    <div class="text-center mt-4">
+      <a routerLink="/forgot-password" class="text-xs text-[#525252] hover:text-black transition-colors">
+        ¿Olvidaste tu contraseña?
+      </a>
     </div>
-
-    <p class="footer-text">
+    
+    <p class="text-xs text-center text-[#525252] mt-6">
       Esta plataforma está reservada para usuarios autorizados
     </p>
   </div>

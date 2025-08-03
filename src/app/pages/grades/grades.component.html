@@ -74,6 +74,17 @@
                             <span *ngIf="searchQuery" class="filtered-indicator">(filtrados)</span>
                         </span>
                     </div>
+
+                    <!-- Botón Subir Calificación debajo de los totales -->
+                    <div class="upload-grade-container" *ngIf="selectedGroup && alumnos.length > 0">
+                        <button (click)="abrirFormularioCalificacion()" 
+                                class="control-btn upload-grade-btn"
+                                [disabled]="!selectedSubject"
+                                title="Subir nueva calificación">
+                            <i class="ti ti-plus"></i>
+                            <span class="btn-text">Subir Calificación</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -105,7 +116,9 @@
                                 <th>Nombre</th>
                                 <th>Grupo</th>
                                 <th>Materia</th>
-                                <th *ngFor="let unit of subjectUnits">Unidad {{ unit.number }}</th>
+                                <th *ngFor="let unit of subjectUnits; let i = index">
+                                    Unidad {{ i + 1 }}
+                                </th>
                                 <th>Promedio</th>
                                 <th>Acciones</th>
                             </tr>
@@ -117,14 +130,22 @@
                                 <td class="student-group">{{ getNombreGrupo(alumno) }}</td>
                                 <td class="student-subject">{{ alumno.materia }}</td>
                                 <td *ngFor="let unit of subjectUnits" class="grade-cell">
-                                    <input type="number" 
-                                           [(ngModel)]="alumno['u' + unit.number]" 
-                                           min="0" 
-                                           max="10"
-                                           step="0.1"
-                                           class="grade-input"
-                                           [placeholder]="'0-10'"
-                                           (blur)="onGradeChange(alumno, unit.number)" />
+                                    <div class="grade-input-container">
+                                        <input type="number" 
+                                               [(ngModel)]="alumno['u' + unit.number]" 
+                                               min="0" 
+                                               max="10"
+                                               step="0.1"
+                                               class="grade-input"
+                                               [placeholder]="'0-10'"
+                                               (blur)="onGradeChange(alumno, unit.number)" />
+                                        <button (click)="guardarCalificacionEspecifica(alumno, unit.number)"
+                                                class="save-unit-btn"
+                                                [disabled]="!selectedSubject || !alumno['u' + unit.number]"
+                                                [title]="'Guardar calificación Unidad ' + unit.number">
+                                            <i class="ti ti-check"></i>
+                                        </button>
+                                    </div>
                                 </td>
                                 <td class="average-cell">
                                     <span class="average-value">{{ calcularPromedio(alumno) }}</span>
@@ -138,13 +159,6 @@
                                             <i class="ti ti-device-floppy"></i>
                                             <span class="btn-text">Guardar</span>
                                         </button>
-                                        <button (click)="actualizarCalificaciones(alumno)"
-                                                class="action-btn update-btn"
-                                                [disabled]="!selectedSubject || isUpdating(alumno.id)"
-                                                [title]="'Actualizar calificaciones de ' + alumno.nombre">
-                                            <i class="ti ti-refresh"></i>
-                                            <span class="btn-text">Actualizar</span>
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -152,6 +166,72 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <!-- Modal para subir calificación -->
+    <div *ngIf="mostrarFormulario" class="modal-overlay" (click)="cerrarFormulario()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Subir Calificación</h2>
+                <button (click)="cerrarFormulario()" class="close-btn">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            
+            <form class="grade-form" (ngSubmit)="guardarNuevaCalificacion()">
+                <div class="form-group">
+                    <label for="studentSelect">Estudiante:</label>
+                    <select id="studentSelect" 
+                            [(ngModel)]="formulario.student_id" 
+                            name="student_id"
+                            class="form-select"
+                            required>
+                        <option value="" disabled>Selecciona un estudiante</option>
+                        <option *ngFor="let alumno of alumnos" [value]="alumno.id">
+                            {{ alumno.nombre }}
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="unitNumber">Número de Unidad:</label>
+                    <input type="number" 
+                           id="unitNumber"
+                           [(ngModel)]="formulario.unit_number" 
+                           name="unit_number"
+                           class="form-input"
+                           min="1"
+                           max="10"
+                           required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="grade">Calificación:</label>
+                    <input type="number" 
+                           id="grade"
+                           [(ngModel)]="formulario.grade" 
+                           name="grade"
+                           class="form-input"
+                           min="0"
+                           max="10"
+                           step="0.1"
+                           required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" 
+                            (click)="cerrarFormulario()" 
+                            class="btn-cancel">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="btn-save"
+                            [disabled]="!formulario.student_id || !formulario.unit_number || !formulario.grade">
+                        Subir Calificación
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

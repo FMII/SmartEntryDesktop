@@ -87,6 +87,8 @@
     display: flex;
     gap: 8px;
     align-items: flex-end;
+    flex-wrap: nowrap;
+    min-height: 44px; /* Altura fija para evitar movimientos */
 }
 
 .students-info {
@@ -237,6 +239,30 @@
     display: inline;
 }
 
+/* ===== BOTÓN SUBIR CALIFICACIÓN ===== */
+.upload-grade-container {
+    margin-top: 12px;
+}
+
+.upload-grade-btn {
+    background-color: #262626;
+    color: white;
+    border-color: #262626;
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+.upload-grade-btn:hover {
+    background-color: #000000;
+    border-color: #000000;
+}
+
+.upload-grade-btn:disabled {
+    background-color: #9CA3AF;
+    border-color: #9CA3AF;
+    cursor: not-allowed;
+}
+
 /* ===== SEPARADOR ===== */
 .separator {
     height: 1px;
@@ -351,6 +377,7 @@
 }
 
 .grade-input[type=number] {
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 
@@ -458,6 +485,12 @@
         font-size: 11px;
     }
     
+    .save-unit-btn {
+        width: 18px;
+        height: 18px;
+        font-size: 9px;
+    }
+    
     .action-buttons {
         min-width: 70px;
         max-width: 90px;
@@ -486,6 +519,12 @@
         width: 40px;
         padding: 3px 4px;
         font-size: 10px;
+    }
+    
+    .save-unit-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 8px;
     }
     
     .action-buttons {
@@ -523,6 +562,12 @@
         font-size: 9px;
     }
     
+    .save-unit-btn {
+        width: 14px;
+        height: 14px;
+        font-size: 7px;
+    }
+    
     .action-buttons {
         min-width: 50px;
         max-width: 70px;
@@ -551,6 +596,12 @@
         width: 30px;
         padding: 1px 2px;
         font-size: 8px;
+    }
+    
+    .save-unit-btn {
+        width: 12px;
+        height: 12px;
+        font-size: 6px;
     }
     
     .action-buttons {
@@ -703,6 +754,247 @@
 .grade-cell {
     text-align: center;
     padding: 8px 12px;
+}
+
+.grade-input-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+}
+
+.save-unit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #10B981;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.save-unit-btn:hover {
+    background-color: #059669;
+    transform: scale(1.05);
+}
+
+.save-unit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    background-color: #9CA3AF;
+}
+
+.save-unit-btn i {
+    font-size: 10px;
+}
+
+/* ===== CONTROLES DE UNIDADES ===== */
+.register-grade-btn {
+    background-color: #10B981;
+    color: white;
+    border-color: #10B981;
+    min-width: 160px; /* Ancho fijo para evitar movimientos */
+    white-space: nowrap;
+}
+
+.register-grade-btn:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+.register-grade-btn:disabled {
+    background-color: #9CA3AF;
+    border-color: #9CA3AF;
+    cursor: not-allowed;
+}
+
+/* ===== MODAL Y FORMULARIO ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 10000;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #F3F4F6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6B7280;
+}
+
+.close-btn:hover {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.grade-form {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-select,
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus,
+.form-input:focus {
+    outline: none;
+    border-color: #262626;
+    box-shadow: 0 0 0 3px rgba(38, 38, 38, 0.1);
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #E5E7EB;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid;
+}
+
+.btn-cancel {
+    background: white;
+    color: #6B7280;
+    border-color: #D1D5DB;
+}
+
+.btn-cancel:hover {
+    background: #F9FAFB;
+    border-color: #9CA3AF;
+}
+
+.btn-save {
+    background: #262626;
+    color: white;
+    border-color: #262626;
+}
+
+.btn-save:hover {
+    background: #000000;
+    border-color: #000000;
+}
+
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #9CA3AF;
+    border-color: #9CA3AF;
+}
+
+/* ===== RESPONSIVIDAD DEL MODAL ===== */
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        max-width: 100%;
+    }
+    
+    .modal-header {
+        padding: 16px 20px;
+    }
+    
+    .grade-form {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+    }
 }
 
 .average-cell {

@@ -126,12 +126,18 @@
                                             <i class="ti ti-check"></i>
                                             <span class="btn-text">Presente</span>
                                         </button>
+                                        <button (click)="cambiarEstadoAsistencia(registro, 'late')"
+                                                [disabled]="loading || registro.status === 'late'"
+                                                class="action-btn late-btn">
+                                            <i class="ti ti-clock"></i>
+                                            <span class="btn-text">Tarde</span>
+                                        </button>
                                         <button (click)="cambiarEstadoAsistencia(registro, 'absent')"
                                                 [disabled]="loading || registro.status === 'absent'"
                                                 class="action-btn absent-btn">
                                             <i class="ti ti-x"></i>
                                             <span class="btn-text">Ausente</span>
-                                    </button>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>

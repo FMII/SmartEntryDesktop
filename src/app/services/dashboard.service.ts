@@ -4,7 +4,7 @@ import { Observable, map, catchError, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private API_URL = 'http://localhost:3000/api/academic';
+  private API_URL = 'https://api.smartentry.space/api/academic';
 
   constructor(private http: HttpClient) {}
 

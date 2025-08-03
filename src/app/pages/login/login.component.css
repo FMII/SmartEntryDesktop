@@ -1,52 +1,17 @@
 /* login.component.css */
-.login-container {
-  @apply text-[#0A0A0A] min-h-screen flex items-center justify-center bg-white px-4;
+
+/* Animación para el toast de error */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.login-card {
-  @apply bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full;
-}
-
-.login-title {
-  @apply text-2xl text-center mb-2;
-}
-
-.login-subtitle {
-  @apply text-xs text-center text-gray-500 mb-6;
-}
-
-.login-form {
-  @apply space-y-8;
-}
-
-.form-group {
-  @apply mb-6;
-}
-
-.form-label {
-  @apply block text-xs font-medium mb-4;
-}
-
-.form-input {
-  @apply text-xs w-full px-4 py-3 bg-[#FAFAFA] rounded-full focus:outline-none focus:ring-1 focus:ring-black;
-}
-
-.error-message {
-  @apply text-red-500 text-xs text-center;
-}
-
-.submit-button {
-  @apply w-full bg-[#262626] text-xs text-white py-3 rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50;
-}
-
-.forgot-password-link {
-  @apply text-center mt-4;
-}
-
-.link-text {
-  @apply text-xs text-[#525252] hover:text-black transition-colors duration-300;
-}
-
-.footer-text {
-  @apply text-xs text-center text-[#525252] mt-6;
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
 }

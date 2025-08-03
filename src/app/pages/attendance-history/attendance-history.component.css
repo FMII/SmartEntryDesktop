@@ -437,6 +437,17 @@
     box-shadow: 0 4px 8px rgba(156, 163, 175, 0.3);
 }
 
+.action-btn.late-btn {
+    background-color: #F59E0B;
+    color: white;
+}
+
+.action-btn.late-btn:hover {
+    background-color: #D97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
 .action-btn.absent-btn {
     background-color: #EF4444;
     color: white;

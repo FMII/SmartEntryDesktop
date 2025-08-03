@@ -204,8 +204,20 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     };
 
     console.log('🔍 Filtros aplicados:', filtros);
+    console.log('📅 Fecha inicio validación:', {
+      fechaInicio: this.fechaInicio,
+      tipo: typeof this.fechaInicio,
+      longitud: this.fechaInicio?.length,
+      formato: this.fechaInicio ? 'YYYY-MM-DD esperado' : 'vacío'
+    });
+    console.log('📅 Fecha fin validación:', {
+      fechaFin: this.fechaFin,
+      tipo: typeof this.fechaFin,
+      longitud: this.fechaFin?.length,
+      formato: this.fechaFin ? 'YYYY-MM-DD esperado' : 'vacío'
+    });
 
-    // Cargar todos los datos en paralelo
+    // Cargar datos principales (solo necesitamos grupos para completar la información)
     forkJoin([
     this.attendanceHistoryService.getHistorialAsistencia(
       filtros.grupoId,
@@ -214,9 +226,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       filtros.fechaFin,
       undefined // Eliminado filtros.search
       ),
-      this.attendanceHistoryService.getAlumnosDelGrupo(this.selectedGroup),
-      this.attendanceHistoryService.getMaterias(),
-      this.attendanceHistoryService.getGrupos()
+      this.attendanceHistoryService.getGrupos() // Solo necesitamos grupos para el nombre
     ]).pipe(
       catchError(error => {
         console.error('Error al cargar historial de asistencia:', error);
@@ -230,23 +240,18 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       }),
       takeUntil(this.destroy$)
     )
-    .subscribe(([asistencias, alumnos, materias, grupos]) => {
-      console.log('Datos recibidos:', { asistencias, alumnos, materias, grupos });
+    .subscribe(([asistencias, grupos]) => {
+      console.log('Datos recibidos:', { asistencias, grupos });
       
-      // Hacer el join para mostrar los nombres
+      // Los datos ya vienen procesados del servicio, solo necesitamos agregar el nombre del grupo
       this.registros = asistencias.map(reg => {
-        // Buscar alumno por user_id
-        const alumno = alumnos.find(a => a.student_id === reg.user_id || a.users?.id === reg.user_id);
-        // Buscar materia
-        const materia = materias.find(m => m.id === reg.subject_id);
-        // Buscar grupo (usando group_id del alumno)
-        const grupo = grupos.find(g => g.id === (alumno?.group_id));
+        // Buscar grupo para completar el nombre
+        const grupo = grupos.find(g => g.id === reg.group_id);
 
         const registroCompleto = {
           ...reg,
-          student_name: alumno ? `${alumno.users.first_name} ${alumno.users.last_name}` : 'Desconocido',
-          group_name: grupo ? grupo.name : 'Desconocido',
-          subject_name: materia ? materia.name : 'Desconocido'
+          // student_name y subject_name ya vienen del servicio
+          group_name: grupo ? grupo.name : 'Grupo desconocido',
         };
 
         console.log('Registro procesado:', registroCompleto);
@@ -307,6 +312,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   onFechaInicioChange(): void {
     console.log('Fecha inicio cambiada:', this.fechaInicio);
+    console.log('Tipo de fecha inicio:', typeof this.fechaInicio);
     if (this.selectedGroup) {
       this.cargarHistorialAsistencia();
     }
@@ -314,6 +320,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   onFechaFinChange(): void {
     console.log('Fecha fin cambiada:', this.fechaFin);
+    console.log('Tipo de fecha fin:', typeof this.fechaFin);
     if (this.selectedGroup) {
       this.cargarHistorialAsistencia();
     }

@@ -1,37 +1,65 @@
-<div class="twofa-container">
-  <div class="twofa-card">
-    <h1 class="twofa-title">Verificación en dos pasos</h1>
-    <p class="twofa-subtitle">
+<div class="min-h-screen flex items-center justify-center bg-white px-4">
+  <!-- Toast de error -->
+  <div *ngIf="errorMessage"
+    class="fixed top-6 right-6 bg-red-50 border border-[#DC3545] text-[#DC3545] rounded-xl shadow-lg w-full max-w-sm z-50 animate-fade-in-up">
+    <div class="flex items-start gap-3 p-4">
+      <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+        <i class="ti ti-x text-2xl text-red-600"></i>
+      </div>
+
+      <div class="flex-1">
+        <p class="font-semibold">Error</p>
+        <ul class="text-sm list-disc ps-4">
+          <li *ngIf="errorMessage">{{ errorMessage }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Toast de éxito -->
+  <div *ngIf="successMessage"
+    class="fixed top-6 right-6 bg-green-50 border border-[#28A745] text-[#28A745] rounded-xl shadow-lg w-full max-w-sm z-50 animate-fade-in-up">
+    <div class="flex items-start gap-3 p-4">
+      <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+        <i class="ti ti-check text-2xl text-green-600"></i>
+      </div>
+      <div class="flex-1">
+        <p class="font-semibold">Éxito</p>
+        <p class="text-sm">{{ successMessage }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-[#E8E8E8] shadow-md rounded-2xl px-8 py-12 max-w-md w-full">
+    <h1 class="text-2xl text-center mb-2">Verificación en dos pasos</h1>
+    <p class="text-xs text-center text-gray-500 mb-6">
       Ingresa el código de 6 dígitos enviado a tu correo <b>{{ email }}</b>.
     </p>
-
-    <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="twofa-form">
-      <div class="form-group">
-        <label for="code" class="form-label">Código</label>
-        <input
-          type="text"
-          id="code"
-          formControlName="code"
-          maxlength="6"
-          placeholder="Ingresa el código"
-          class="form-input"
-        />
+    
+    <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div>
+        <label for="code" class="block text-xs font-medium mb-4">Código</label>
+        <input type="text" id="code" formControlName="code" maxlength="6" placeholder="Ingresa el código"
+          class="text-xs w-full px-4 py-3 bg-[#FAFAFA] rounded-full focus:outline-none focus:ring-1 focus:ring-black" />
+        <div *ngIf="codeForm.controls['code'].invalid && codeForm.controls['code'].touched"
+          class="text-red-500 text-xs mt-2">
+          El código debe tener 6 dígitos.
+        </div>
       </div>
-
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-      <div *ngIf="successMessage" class="success-message">
-        {{ successMessage }}
-      </div>
-
-      <button type="submit" [disabled]="codeForm.invalid || isLoading" class="submit-button">
-        {{ isLoading ? 'Verificando...' : 'Verificar código' }}
+      
+      <button type="submit" [disabled]="codeForm.invalid || isLoading"
+        class="w-full bg-[#262626] text-xs text-white py-3 rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50">
+        <span *ngIf="!isLoading">Verificar código</span>
+        <span *ngIf="isLoading">Verificando...</span>
       </button>
     </form>
 
-    <button (click)="resendCode()" [disabled]="resendLoading" class="resend-button">
-      {{ resendLoading ? 'Reenviando...' : 'Reenviar código' }}
-    </button>
+    <div class="text-center mt-6">
+      <button (click)="resendCode()" [disabled]="resendLoading" 
+        class="text-xs text-[#525252] hover:text-black transition-colors bg-transparent border-none cursor-pointer">
+        <span *ngIf="!resendLoading">Reenviar código</span>
+        <span *ngIf="resendLoading">Reenviando...</span>
+      </button>
+    </div>
   </div>
 </div> 

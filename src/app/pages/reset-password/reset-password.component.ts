@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [NgIf, ReactiveFormsModule],
+  imports: [NgIf, ReactiveFormsModule, RouterLink],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css'
 })
@@ -36,9 +36,8 @@ export class ResetPasswordComponent implements OnInit {
       this.token = params['token'] || '';
       this.email = params['email'] || '';
       
-      if (!this.token || !this.email) {
-        this.errorMessage = 'Token o email inválido';
-      }
+      // Solo mostrar error si se intenta usar el formulario sin los parámetros necesarios
+      // Pero permitir que el usuario navegue libremente
     });
   }
 
@@ -53,7 +52,13 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.resetPasswordForm.invalid || !this.token || !this.email) return;
+    // Verificar parámetros solo al intentar enviar el formulario
+    if (!this.token || !this.email) {
+      this.errorMessage = 'Token o email inválido. No se puede restablecer la contraseña.';
+      return;
+    }
+
+    if (this.resetPasswordForm.invalid) return;
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -74,9 +79,5 @@ export class ResetPasswordComponent implements OnInit {
         this.errorMessage = err.message || 'Error al actualizar la contraseña';
       }
     });
-  }
-
-  goBackToLogin() {
-    this.router.navigate(['/login']);
   }
 }
