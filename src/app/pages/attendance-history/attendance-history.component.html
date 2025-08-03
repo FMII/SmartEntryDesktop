@@ -24,8 +24,8 @@
                         </select>
                     </div>
 
-                    <!-- Dropdown de materias -->
-                    <div class="filter-group">
+                    <!-- Dropdown de materias (solo visible si hay más de una) -->
+                    <div class="filter-group" *ngIf="showSubjectDropdown">
                         <label for="subjectSelect" class="filter-label">Materia:</label>
                         <select id="subjectSelect" 
                                 [(ngModel)]="selectedMateria" 
@@ -34,6 +34,12 @@
                             <option value="">Todas las materias</option>
                             <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.name }}</option>
                         </select>
+                    </div>
+
+                    <!-- Indicador de materia única -->
+                    <div class="filter-group" *ngIf="!showSubjectDropdown && selectedMateria && materias.length === 1">
+                        <label class="filter-label">Materia:</label>
+                        <span class="subject-indicator">{{ materias[0].name }}</span>
                     </div>
                 </div>
 

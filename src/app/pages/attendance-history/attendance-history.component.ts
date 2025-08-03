@@ -28,6 +28,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   selectedMateria: any = null;
   fechaInicio: string = '';
   fechaFin: string = '';
+  
+  // Propiedad para controlar visibilidad del dropdown de materias
+  showSubjectDropdown: boolean = false;
 
   // Estados
   loading: boolean = false;
@@ -147,6 +150,21 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
         if (this.grupos.length > 0) {
           this.selectedGroup = this.grupos[0].id;
           console.log('Grupo seleccionado:', this.selectedGroup);
+          
+          // Aplicar la lógica del dropdown condicional para el grupo inicial
+          const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
+          if (selectedGroupData) {
+            // Determinar si mostrar el dropdown de materias
+            this.showSubjectDropdown = this.materias && this.materias.length > 1;
+            
+            if (this.showSubjectDropdown) {
+              // Si hay múltiples materias, resetear la selección
+              this.selectedMateria = null;
+            } else if (this.materias && this.materias.length === 1) {
+              // Si solo hay una materia, seleccionarla automáticamente
+              this.selectedMateria = this.materias[0].id;
+            }
+          }
         } else {
           console.log('No hay grupos disponibles para el profesor');
         }
@@ -258,6 +276,27 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   onGroupChange(): void {
     console.log('Grupo cambiado:', this.selectedGroup);
+    
+    // Obtener las materias del grupo seleccionado
+    const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
+    
+    if (selectedGroupData) {
+      // Determinar si mostrar el dropdown de materias
+      this.showSubjectDropdown = this.materias && this.materias.length > 1;
+      
+      if (this.showSubjectDropdown) {
+        // Si hay múltiples materias, resetear la selección
+        this.selectedMateria = null;
+      } else if (this.materias && this.materias.length === 1) {
+        // Si solo hay una materia, seleccionarla automáticamente
+        this.selectedMateria = this.materias[0].id;
+      }
+    } else {
+      console.log('No se encontró el grupo seleccionado');
+      this.showSubjectDropdown = false;
+      this.selectedMateria = null;
+    }
+    
     this.cargarHistorialAsistencia();
   }
 
