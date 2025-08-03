@@ -87,7 +87,17 @@
                     <p>No hay unidades configuradas para esta materia. Se usarán unidades por defecto (1-5).</p>
                 </div>
                 
-                <div class="table-wrapper">
+                <!-- Mensaje cuando no hay datos -->
+                <div *ngIf="alumnosFiltrados.length === 0 && selectedGroup && selectedSubject" class="no-data-message">
+                    <p>No hay alumnos disponibles para mostrar.</p>
+                </div>
+                
+                <!-- Mensaje cuando no hay grupo o materia seleccionada -->
+                <div *ngIf="!selectedGroup || !selectedSubject" class="select-message">
+                    <p>Selecciona un grupo y una materia para ver las calificaciones.</p>
+                </div>
+                
+                <div class="table-wrapper" *ngIf="alumnosFiltrados.length > 0 && selectedGroup && selectedSubject">
                     <table class="data-table">
                         <thead class="table-header">
                             <tr>
@@ -101,31 +111,37 @@
                             </tr>
                         </thead>
                         <tbody class="table-body">
-                            <tr *ngFor="let alumno of alumnosFiltrados" class="table-row">
-                                <td>{{ alumno.id }}</td>
-                                <td>{{ alumno.nombre }}</td>
-                                <td>{{ getNombreGrupo(alumno) }}</td>
-                                <td>{{ alumno.materia }}</td>
-                                <td *ngFor="let unit of subjectUnits">
+                            <tr *ngFor="let alumno of alumnosFiltrados; trackBy: trackByAlumno" class="table-row">
+                                <td class="student-id">{{ alumno.id }}</td>
+                                <td class="student-name">{{ alumno.nombre }}</td>
+                                <td class="student-group">{{ getNombreGrupo(alumno) }}</td>
+                                <td class="student-subject">{{ alumno.materia }}</td>
+                                <td *ngFor="let unit of subjectUnits" class="grade-cell">
                                     <input type="number" 
                                            [(ngModel)]="alumno['u' + unit.number]" 
                                            min="0" 
                                            max="10"
                                            step="0.1"
-                                           class="grade-input" />
+                                           class="grade-input"
+                                           [placeholder]="'0-10'"
+                                           (blur)="onGradeChange(alumno, unit.number)" />
                                 </td>
-                                <td class="font-medium">{{ calcularPromedio(alumno) }}</td>
-                                <td>
+                                <td class="average-cell">
+                                    <span class="average-value">{{ calcularPromedio(alumno) }}</span>
+                                </td>
+                                <td class="actions-cell">
                                     <div class="action-buttons">
                                         <button (click)="guardarCalificaciones(alumno)"
                                                 class="action-btn save-btn"
-                                                [disabled]="!selectedSubject">
+                                                [disabled]="!selectedSubject || isSaving(alumno.id)"
+                                                [title]="'Guardar calificaciones de ' + alumno.nombre">
                                             <i class="ti ti-device-floppy"></i>
                                             <span class="btn-text">Guardar</span>
                                         </button>
                                         <button (click)="actualizarCalificaciones(alumno)"
                                                 class="action-btn update-btn"
-                                                [disabled]="!selectedSubject">
+                                                [disabled]="!selectedSubject || isUpdating(alumno.id)"
+                                                [title]="'Actualizar calificaciones de ' + alumno.nombre">
                                             <i class="ti ti-refresh"></i>
                                             <span class="btn-text">Actualizar</span>
                                         </button>

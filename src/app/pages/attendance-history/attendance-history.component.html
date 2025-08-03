@@ -35,20 +35,6 @@
                             <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.name }}</option>
                         </select>
                     </div>
-
-                    <!-- Buscador -->
-                    <div class="filter-group search-group">
-                        <label for="search" class="sr-only">Buscar alumno</label>
-                        <div class="search-container">
-                            <i class="ti ti-search search-icon"></i>
-                            <input type="text" 
-                                   id="search"
-                                   [(ngModel)]="searchQuery" 
-                                   (input)="onSearchChange()"
-                                   class="search-input"
-                                   placeholder="Buscar alumno..." />
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Segunda fila de filtros -->

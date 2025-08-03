@@ -26,7 +26,6 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   // Filtros
   selectedGroup: any = null;
   selectedMateria: any = null;
-  searchQuery: string = '';
   fechaInicio: string = '';
   fechaFin: string = '';
 
@@ -43,7 +42,6 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   // Optimización de rendimiento
   private destroy$ = new Subject<void>();
-  private searchSubject = new Subject<string>();
   private cache = new Map<string, any[]>();
 
   // Utilidades
@@ -81,9 +79,6 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     console.log('Limpiando cache temporalmente para debug...');
     this.cache.clear();
     
-    console.log('Configurando search debounce...');
-    this.setupSearchDebounce();
-    
     console.log('Iniciando carga de datos iniciales...');
     this.cargarDatosIniciales();
   }
@@ -94,19 +89,6 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
     }
-  }
-
-  private setupSearchDebounce(): void {
-    console.log('Configurando search debounce...');
-    this.searchSubject.pipe(
-      debounceTime(300), // Esperar 300ms antes de buscar
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      console.log('Ejecutando búsqueda con debounce...');
-      this.filtrarRegistros();
-    });
-    console.log('Search debounce configurado');
   }
 
   cargarDatosIniciales(): void {
@@ -200,7 +182,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       materiaId: this.selectedMateria || undefined,
       fechaInicio: this.fechaInicio || undefined,
       fechaFin: this.fechaFin || undefined,
-      search: this.searchQuery || undefined
+      search: undefined // Eliminado searchQuery
     };
 
     console.log('🔍 Filtros aplicados:', filtros);
@@ -212,7 +194,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       filtros.materiaId,
       filtros.fechaInicio,
       filtros.fechaFin,
-      filtros.search
+      undefined // Eliminado filtros.search
       ),
       this.attendanceHistoryService.getAlumnosDelGrupo(this.selectedGroup),
       this.attendanceHistoryService.getMaterias(),
@@ -269,7 +251,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   }
 
   private getCacheKey(): string {
-    const key = `${this.selectedGroup || 'no-group'}-${this.selectedMateria || 'no-materia'}-${this.fechaInicio || 'no-fecha'}-${this.fechaFin || 'no-fecha'}-${this.searchQuery || 'no-search'}`;
+    const key = `${this.selectedGroup || 'no-group'}-${this.selectedMateria || 'no-materia'}-${this.fechaInicio || 'no-fecha'}-${this.fechaFin || 'no-fecha'}-${undefined}`; // Eliminado searchQuery
     console.log('Cache key generado:', key);
     return key;
   }
@@ -298,37 +280,51 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSearchChange(): void {
-    console.log('Búsqueda cambiada:', this.searchQuery);
-    this.searchSubject.next(this.searchQuery);
-    
-    // Si hay término de búsqueda, recargar datos para incluir alumnos del grupo
-    if (this.searchQuery.trim()) {
-      console.log('Recargando datos para búsqueda...');
-      this.cargarHistorialAsistencia();
-    } else {
-      // Si no hay término de búsqueda, solo filtrar los registros existentes
-      this.filtrarRegistros();
-    }
-  }
-
   filtrarRegistros(): void {
-    if (!this.registros.length) return;
-
-    this.registrosFiltrados = this.registros.filter(reg => {
-      // Buscar por nombre del alumno (sin matrícula ya que la eliminamos)
-      const matchesSearch = !this.searchQuery || 
-        reg.student_name?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        reg.nombre?.toLowerCase().includes(this.searchQuery.toLowerCase());
-      
-      const matchesGroup = !this.selectedGroup || reg.group_id == this.selectedGroup || reg.grupoId == this.selectedGroup;
-      const matchesMateria = !this.selectedMateria || reg.subject_id == this.selectedMateria || reg.materiaId == this.selectedMateria;
-      
-      return matchesSearch && matchesGroup && matchesMateria;
+    console.log('Filtrando registros...');
+    console.log('Registros totales:', this.registros.length);
+    console.log('Filtros actuales:', {
+      grupo: this.selectedGroup,
+      materia: this.selectedMateria,
+      fechaInicio: this.fechaInicio,
+      fechaFin: this.fechaFin
     });
-    
+
+    this.registrosFiltrados = this.registros.filter(registro => {
+      // Filtro por grupo
+      if (this.selectedGroup && registro.group_id != this.selectedGroup) {
+        return false;
+      }
+
+      // Filtro por materia
+      if (this.selectedMateria && registro.subject_id != this.selectedMateria) {
+        return false;
+      }
+
+      // Filtro por fecha de inicio
+      if (this.fechaInicio) {
+        const fechaRegistro = new Date(registro.date);
+        const fechaInicio = new Date(this.fechaInicio);
+        if (fechaRegistro < fechaInicio) {
+          return false;
+        }
+      }
+
+      // Filtro por fecha de fin
+      if (this.fechaFin) {
+        const fechaRegistro = new Date(registro.date);
+        const fechaFin = new Date(this.fechaFin);
+        if (fechaRegistro > fechaFin) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    console.log('Registros filtrados:', this.registrosFiltrados.length);
     this.totalItems = this.registrosFiltrados.length;
-    this.currentPage = 1;
+    this.currentPage = 1; // Resetear a la primera página
     this.cdr.markForCheck();
   }
 

@@ -794,7 +794,36 @@ export class GradesComponent implements OnInit, OnDestroy {
 
   // Obtener solo el conteo de estudiantes
   getStudentCount(): Observable<number> {
-    if (!this.selectedGroup) return of(0);
-    return this.gradesService.getStudentCountByGroup(parseInt(this.selectedGroup));
+    return of(this.alumnos.length);
+  }
+
+  // Método para trackBy en ngFor (optimización de rendimiento)
+  trackByAlumno(index: number, alumno: any): number {
+    return alumno.id;
+  }
+
+  // Método para manejar cambios en calificaciones
+  onGradeChange(alumno: any, unitNumber: number): void {
+    const gradeValue = alumno[`u${unitNumber}`];
+    if (gradeValue !== undefined && gradeValue !== null && gradeValue !== '') {
+      const gradeNumber = parseFloat(gradeValue);
+      if (isNaN(gradeNumber) || gradeNumber < 0 || gradeNumber > 10) {
+        console.warn(`Calificación inválida para ${alumno.nombre} - Unidad ${unitNumber}: ${gradeValue}`);
+        // Resetear a valor válido
+        alumno[`u${unitNumber}`] = '';
+      }
+    }
+  }
+
+  // Método para verificar si se está guardando
+  isSaving(studentId: number): boolean {
+    // Implementación simple - puedes expandir esto según tus necesidades
+    return false;
+  }
+
+  // Método para verificar si se está actualizando
+  isUpdating(studentId: number): boolean {
+    // Implementación simple - puedes expandir esto según tus necesidades
+    return false;
   }
 }

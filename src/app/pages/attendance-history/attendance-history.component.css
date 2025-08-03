@@ -12,10 +12,7 @@
     height: 100vh;
     width: 100%;
     background-color: #FAFAFA;
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* Un solo scroll para toda la vista */
-    scroll-behavior: smooth;
+    overflow: hidden; /* Cambiado de auto a hidden */
 }
 
 /* ===== HEADER ===== */
@@ -37,9 +34,10 @@
 /* ===== CONTENIDO PRINCIPAL ===== */
 .content-body {
     padding: 16px 32px;
+    flex: 1;
+    overflow-y: auto; /* Solo scroll aquí */
+    overflow-x: hidden;
     min-height: 0;
-    /* Sin flex para permitir scroll natural */
-    height: auto;
 }
 
 .content-card {
@@ -50,7 +48,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-    /* Permitir que crezca naturalmente */
     height: auto;
 }
 
@@ -78,10 +75,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-.search-group {
-    grid-column: span 2;
 }
 
 .controls-group {
@@ -121,28 +114,6 @@
     outline: none;
     border-color: #262626;
     box-shadow: 0 0 0 3px rgba(38, 38, 38, 0.1);
-}
-
-.search-container {
-    position: relative;
-    width: 100%;
-}
-
-.search-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9CA3AF;
-    font-size: 16px;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.search-input {
-    padding-left: 48px;
-    width: 100%;
-    min-width: 200px;
 }
 
 /* ===== CONTROLES ===== */
@@ -239,7 +210,7 @@
     100% { transform: rotate(360deg); }
 }
 
-/* ===== TABLA MEJORADA ===== */
+/* ===== TABLA MEJORADA Y VERDADERAMENTE RESPONSIVA ===== */
 .table-container {
     margin-bottom: 16px;
     border-radius: 12px;
@@ -251,9 +222,10 @@
 }
 
 .table-wrapper {
-    overflow-x: auto;
+    overflow-x: auto; /* Solo scroll horizontal si es necesario */
     border: 1px solid #E5E7EB;
     border-radius: 8px;
+    /* Removido max-height y min-height para que use el scroll del padre */
 }
 
 .data-table {
@@ -263,6 +235,7 @@
     background: white;
     border-radius: 12px;
     overflow: hidden;
+    table-layout: auto;
 }
 
 .table-header {
@@ -273,7 +246,7 @@
 }
 
 .table-header th {
-    padding: 16px 20px;
+    padding: 12px 8px;
     text-align: left;
     font-weight: 600;
     color: #0A0A0A;
@@ -284,6 +257,8 @@
     white-space: nowrap;
     background-color: #F9FAFB;
     font-family: 'Poppins', sans-serif;
+    position: sticky;
+    top: 0;
 }
 
 .table-body {
@@ -300,30 +275,74 @@
 }
 
 .table-row td {
-    padding: 16px 20px;
+    padding: 8px 6px;
     color: #374151;
     font-weight: 500;
     white-space: nowrap;
     vertical-align: middle;
     font-size: 14px;
     line-height: 1.5;
+    border-bottom: 1px solid #F3F4F6;
 }
 
-.table-row:last-child {
+.table-row:last-child td {
     border-bottom: none;
+}
+
+/* ===== CELDAS ESPECÍFICAS CON ANCHOS ADAPTATIVOS ===== */
+.table-row td:nth-child(1) { /* ID */
+    width: 40px;
+    min-width: 40px;
+    font-weight: 600;
+    color: #6B7280;
+    font-size: 12px;
+}
+
+.table-row td:nth-child(2) { /* NOMBRE DEL ALUMNO */
+    min-width: 150px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.table-row td:nth-child(3) { /* GRUPO */
+    min-width: 80px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.table-row td:nth-child(4) { /* MATERIA */
+    min-width: 100px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.table-row td:nth-child(5) { /* FECHA */
+    min-width: 100px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.table-row td:nth-child(6) { /* ASISTENCIA */
+    min-width: 100px;
+    text-align: center;
+}
+
+.table-row td:nth-child(7) { /* ACCIONES */
+    min-width: 120px;
+    text-align: center;
 }
 
 /* ===== ESTADOS DE ASISTENCIA MEJORADOS ===== */
 .attendance-status {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: inline-block;
     text-align: center;
-    min-width: 100px;
+    min-width: 80px;
     font-family: 'Poppins', sans-serif;
 }
 
@@ -346,16 +365,25 @@
 }
 
 /* ===== BOTONES DE ACCIÓN MEJORADOS ===== */
+.action-buttons {
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    min-width: 100px;
+    max-width: 120px;
+}
+
 .action-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
     background-color: #262626;
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -363,6 +391,9 @@
     font-family: 'Poppins', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    min-width: 80px;
+    max-width: 100px;
+    width: 100%;
 }
 
 .action-btn:hover {
@@ -378,25 +409,21 @@
 }
 
 .action-btn i {
-    font-size: 14px;
+    font-size: 10px;
 }
 
 /* ===== BOTONES DE ACCIÓN SEPARADOS ===== */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
 .action-btn.present-btn {
-    background-color: #10B981;
-    color: white;
+    background-color: white;
+    color: #374151;
+    border: 1px solid #D1D5DB;
 }
 
 .action-btn.present-btn:hover {
-    background-color: #059669;
+    background-color: #F9FAFB;
+    border-color: #9CA3AF;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 8px rgba(156, 163, 175, 0.3);
 }
 
 .action-btn.absent-btn {
@@ -457,122 +484,253 @@
 
 /* Estilos de paginación removidos - Ahora usamos scroll infinito */
 
-/* ===== RESPONSIVIDAD ===== */
+/* ===== RESPONSIVIDAD VERDADERAMENTE ADAPTATIVA ===== */
 @media (max-width: 1200px) {
-    .content-body {
-        padding: 20px 24px;
+    .table-header th,
+    .table-row td {
+        padding: 8px 4px;
+        font-size: 12px;
     }
     
-    .content-card {
-        padding: 24px;
+    .table-row td:nth-child(2) { /* NOMBRE DEL ALUMNO */
+        min-width: 120px;
     }
     
-    .filters-container {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 1024px) {
-    .filters-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
+    .table-row td:nth-child(3) { /* GRUPO */
+        min-width: 60px;
     }
     
-    .search-group {
-        grid-column: span 1;
+    .table-row td:nth-child(4) { /* MATERIA */
+        min-width: 80px;
     }
     
-    .controls-group {
-        justify-content: flex-start;
-        flex-wrap: wrap;
+    .table-row td:nth-child(5) { /* FECHA */
+        min-width: 80px;
+    }
+    
+    .table-row td:nth-child(6) { /* ASISTENCIA */
+        min-width: 80px;
+    }
+    
+    .table-row td:nth-child(7) { /* ACCIONES */
+        min-width: 100px;
+    }
+    
+    .action-buttons {
+        min-width: 90px;
+        max-width: 100px;
+    }
+    
+    .action-btn {
+        padding: 4px 6px;
+        font-size: 9px;
+        min-width: 70px;
+        max-width: 90px;
+    }
+    
+    .attendance-status {
+        padding: 4px 8px;
+        font-size: 10px;
+        min-width: 70px;
     }
 }
 
 @media (max-width: 768px) {
-    .content-header {
-        padding: 16px 20px;
-    }
-    
-    .header-title {
-        font-size: 20px;
-    }
-    
-    .content-body {
-        padding: 16px 20px;
-    }
-    
-    .content-card {
-        padding: 20px;
-    }
-    
-    .filters-container {
-        padding: 16px;
-    }
-    
-    .table-wrapper {
-        max-height: 400px;
-    }
-    
     .table-header th,
     .table-row td {
-        padding: 12px 16px;
-        font-size: 13px;
+        padding: 6px 3px;
+        font-size: 11px;
     }
     
-    .pagination-container {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+    .table-row td:nth-child(2) { /* NOMBRE DEL ALUMNO */
+        min-width: 100px;
     }
     
-    .pagination-controls {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 480px) {
-    .content-card {
-        padding: 16px;
+    .table-row td:nth-child(3) { /* GRUPO */
+        min-width: 50px;
     }
     
-    .filters-container {
-        padding: 12px;
+    .table-row td:nth-child(4) { /* MATERIA */
+        min-width: 70px;
     }
     
-    .table-wrapper {
-        max-height: 350px;
+    .table-row td:nth-child(5) { /* FECHA */
+        min-width: 70px;
     }
     
-    .table-header th,
-    .table-row td {
-        padding: 10px 12px;
-        font-size: 12px;
+    .table-row td:nth-child(6) { /* ASISTENCIA */
+        min-width: 70px;
+    }
+    
+    .table-row td:nth-child(7) { /* ACCIONES */
+        min-width: 90px;
+    }
+    
+    .action-buttons {
+        min-width: 80px;
+        max-width: 90px;
+        gap: 2px;
     }
     
     .action-btn {
-        padding: 8px 12px;
-        font-size: 11px;
+        padding: 3px 4px;
+        font-size: 8px;
+        min-width: 60px;
+        max-width: 80px;
     }
     
     .btn-text {
         display: none;
     }
     
-    .search-input {
-        min-width: 150px;
+    .attendance-status {
+        padding: 3px 6px;
+        font-size: 9px;
+        min-width: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .table-header th,
+    .table-row td {
+        padding: 4px 2px;
+        font-size: 10px;
     }
     
-    .filter-select,
-    .filter-input {
-        padding: 10px 12px;
-        font-size: 13px;
+    .table-row td:nth-child(2) { /* NOMBRE DEL ALUMNO */
+        min-width: 80px;
+    }
+    
+    .table-row td:nth-child(3) { /* GRUPO */
+        min-width: 40px;
+    }
+    
+    .table-row td:nth-child(4) { /* MATERIA */
+        min-width: 60px;
+    }
+    
+    .table-row td:nth-child(5) { /* FECHA */
+        min-width: 60px;
+    }
+    
+    .table-row td:nth-child(6) { /* ASISTENCIA */
+        min-width: 60px;
+    }
+    
+    .table-row td:nth-child(7) { /* ACCIONES */
+        min-width: 80px;
+    }
+    
+    .action-buttons {
+        min-width: 70px;
+        max-width: 80px;
+    }
+    
+    .action-btn {
+        padding: 2px 3px;
+        font-size: 7px;
+        min-width: 50px;
+        max-width: 70px;
     }
     
     .attendance-status {
-        padding: 6px 12px;
-        font-size: 11px;
-        min-width: 80px;
+        padding: 2px 4px;
+        font-size: 8px;
+        min-width: 50px;
+    }
+}
+
+@media (max-width: 400px) {
+    .table-header th,
+    .table-row td {
+        padding: 3px 1px;
+        font-size: 9px;
+    }
+    
+    .table-row td:nth-child(2) { /* NOMBRE DEL ALUMNO */
+        min-width: 60px;
+    }
+    
+    .table-row td:nth-child(3) { /* GRUPO */
+        min-width: 30px;
+    }
+    
+    .table-row td:nth-child(4) { /* MATERIA */
+        min-width: 50px;
+    }
+    
+    .table-row td:nth-child(5) { /* FECHA */
+        min-width: 50px;
+    }
+    
+    .table-row td:nth-child(6) { /* ASISTENCIA */
+        min-width: 50px;
+    }
+    
+    .table-row td:nth-child(7) { /* ACCIONES */
+        min-width: 70px;
+    }
+    
+    .action-buttons {
+        min-width: 60px;
+        max-width: 70px;
+    }
+    
+    .action-btn {
+        padding: 1px 2px;
+        font-size: 6px;
+        min-width: 40px;
+        max-width: 60px;
+    }
+    
+    .attendance-status {
+        padding: 1px 3px;
+        font-size: 7px;
+        min-width: 40px;
+    }
+}
+
+/* ===== ADAPTACIÓN PARA VENTANAS MUY ESTRECHAS ===== */
+@media (max-width: 600px) {
+    .action-buttons {
+        flex-direction: row;
+        gap: 2px;
+        min-width: 60px;
+        max-width: 80px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 30px;
+        max-width: 40px;
+        padding: 2px;
+        font-size: 7px;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .action-btn i {
+        font-size: 7px;
+    }
+}
+
+@media (max-width: 500px) {
+    .action-buttons {
+        min-width: 50px;
+        max-width: 70px;
+    }
+    
+    .action-btn {
+        min-width: 25px;
+        max-width: 35px;
+        padding: 1px;
+        font-size: 6px;
+    }
+    
+    .action-btn i {
+        font-size: 6px;
     }
 }
 
@@ -595,6 +753,26 @@
 }
 
 /* ===== SCROLLBAR PERSONALIZADO ===== */
+.content-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.content-body::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 4px;
+}
+
+.content-body::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+}
+
+.content-body::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Scrollbar para tabla horizontal si es necesario */
 .table-wrapper::-webkit-scrollbar {
     width: 8px;
     height: 8px;
