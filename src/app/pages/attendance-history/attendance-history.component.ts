@@ -31,6 +31,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   
   // Propiedad para controlar visibilidad del dropdown de materias
   showSubjectDropdown: boolean = false;
+  currentUser: any = null;
 
   // Estados
   loading: boolean = false;
@@ -62,6 +63,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     
     // Verificar autenticación
     const currentUser = this.authService.getCurrentUser();
+    this.currentUser = currentUser;
     console.log('Usuario actual en historial:', currentUser);
     console.log('localStorage userId:', localStorage.getItem('userId'));
     console.log('localStorage email:', localStorage.getItem('email'));

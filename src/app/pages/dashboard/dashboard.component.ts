@@ -23,6 +23,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   fechaInicio: string = '';
   fechaFin: string = '';
   chart: Chart | null = null;
+  currentUser: any = null;
 
   constructor(
     private dashboardService: DashboardService,
@@ -34,6 +35,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('DashboardComponent ngOnInit iniciado');
+    
+    // Obtener información del usuario actual
+    this.currentUser = this.authService.getCurrentUser();
     
     // Inicializar fechas por defecto (último mes)
     const now = new Date();

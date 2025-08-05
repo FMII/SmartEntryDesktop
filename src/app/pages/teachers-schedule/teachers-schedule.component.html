@@ -2,7 +2,10 @@
 <div class="teachers-schedule-content">
     <!-- Header -->
     <header class="content-header">
-        <h1 class="header-title">Horario de Docentes</h1>
+        <h1 class="header-title">Horario de Maestros</h1>
+        <div class="header-right">
+            <span class="user-name">{{ currentUser?.fullName || currentUser?.email || 'Usuario' }}</span>
+        </div>
     </header>
 
     <!-- Contenido principal -->

@@ -23,6 +23,7 @@ export class GradesComponent implements OnInit, OnDestroy {
   selectedSubject: any = '';
   activeTab: string = '1';
   currentTeacher: any = null;
+  currentUser: any = null;
   private autoRefreshSubscription?: Subscription;
   autoRefreshEnabled = false;
   
@@ -48,6 +49,7 @@ export class GradesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.currentTeacher = this.authService.getCurrentUser();
+    this.currentUser = this.currentTeacher;
     
     // Verificar autenticación
     if (!this.currentTeacher || !localStorage.getItem('token')) {
