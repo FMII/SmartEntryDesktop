@@ -20,7 +20,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   materias: any[] = [];
   horarios: any[] = [];
   horariosFiltrados: any[] = [];
-  currentUser: any = null;
+  currentUser: any = null; // Usuario actual autenticado
   
   // Estados
   loading = false;
@@ -92,7 +92,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: (schedules) => {
-        console.log('✅ Horarios formateados obtenidos:', schedules);
+        console.log('Horarios formateados obtenidos:', schedules);
         
         this.horarios = schedules;
         this.horariosFiltrados = schedules;
@@ -180,14 +180,34 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   }
 
   recargarDatos(): void {
-    console.log('Recargando datos en horario...', {
+    console.log('===== RECARGAR DATOS COMPLETOS DESDE API =====');
+    console.log('Recargando TODA la vista desde la API...');
+    
+    // Limpiar TODOS los datos actuales
+    this.selectedGroup = '';
+    this.selectedSubject = '';
+    this.grupos = [];
+    this.materias = [];
+    this.horarios = [];
+    this.horariosFiltrados = [];
+    this.error = null;
+    this.loading = false;
+    
+    console.log('Estado después de limpiar:', {
       selectedGroup: this.selectedGroup,
       selectedSubject: this.selectedSubject,
-      currentUser: this.authService.getCurrentUser()
+      grupos: this.grupos.length,
+      materias: this.materias.length,
+      horarios: this.horarios.length
     });
     
+    // Limpiar cache del servicio
     this.scheduleService.clearAllCache();
+    
+    // Recargar TODOS los datos desde cero
     this.cargarDatosIniciales();
+    
+    console.log('===== RECARGA COMPLETA FINALIZADA =====');
   }
 
   private setupAutoRefresh(): void {

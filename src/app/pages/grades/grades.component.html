@@ -119,8 +119,8 @@
                                 <th>Nombre</th>
                                 <th>Grupo</th>
                                 <th>Materia</th>
-                                <th *ngFor="let unit of subjectUnits; let i = index">
-                                    Unidad {{ i + 1 }}
+                                <th *ngFor="let unit of subjectUnits">
+                                    Unidad {{ unit.number }}
                                 </th>
                                 <th>Promedio</th>
                                 <th>Acciones</th>

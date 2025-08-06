@@ -477,20 +477,43 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   }
 
   recargarDatos(): void {
-    console.log('===== RECARGAR DATOS INICIADO =====');
-    console.log('Recargando datos en historial...', {
+    console.log('===== RECARGAR DATOS COMPLETOS DESDE API =====');
+    console.log('Recargando TODA la vista desde la API...');
+    
+    // Limpiar TODOS los datos actuales
+    this.selectedGroup = null;
+    this.selectedMateria = null;
+    this.fechaInicio = '';
+    this.fechaFin = '';
+    this.grupos = [];
+    this.materias = [];
+    this.registros = [];
+    this.registrosFiltrados = [];
+    this.estadisticas = null;
+    this.error = '';
+    this.loading = false;
+    this.currentPage = 1;
+    this.totalItems = 0;
+    this.showSubjectDropdown = false;
+    
+    console.log('Estado después de limpiar:', {
       selectedGroup: this.selectedGroup,
       selectedMateria: this.selectedMateria,
-      currentUser: this.authService.getCurrentUser()
+      fechaInicio: this.fechaInicio,
+      fechaFin: this.fechaFin,
+      grupos: this.grupos.length,
+      materias: this.materias.length,
+      registros: this.registros.length
     });
     
-    console.log('Limpiando cache...');
-    this.cache.clear(); // Limpiar cache
-    this.attendanceHistoryService.clearAllCache(); // Limpiar cache del servicio
+    // Limpiar cache
+    this.cache.clear();
+    this.attendanceHistoryService.clearAllCache();
     
-    console.log('Llamando a cargarHistorialAsistencia...');
-    this.cargarHistorialAsistencia();
-    console.log('===== RECARGAR DATOS FINALIZADO =====');
+    // Recargar TODOS los datos desde cero
+    this.cargarDatosIniciales();
+    
+    console.log('===== RECARGA COMPLETA FINALIZADA =====');
   }
 
   // Utilidades optimizadas

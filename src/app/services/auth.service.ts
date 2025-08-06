@@ -21,6 +21,27 @@ export class AuthService {
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('email', res.data.email);
             localStorage.setItem('userId', res.data.id);
+            
+            // Guardar nombre completo del usuario si está disponible
+            console.log('Verificando campos de nombre:', {
+              first_name: res.data.first_name,
+              last_name: res.data.last_name,
+              name: res.data.name
+            });
+            
+            if (res.data.first_name || res.data.last_name) {
+              const firstName = res.data.first_name || '';
+              const lastName = res.data.last_name || '';
+              const fullName = `${firstName} ${lastName}`.trim();
+              localStorage.setItem('userFullName', fullName);
+              console.log('Nombre guardado:', fullName);
+            } else if (res.data.name) {
+              localStorage.setItem('userFullName', res.data.name);
+              console.log('Nombre guardado (campo name):', res.data.name);
+            } else {
+              console.log('No se encontraron campos de nombre en la respuesta');
+            }
+            
             return of(res); // éxito normal
           } else {
             // Flujo 2FA: guardar email pendiente y lanzar error observable
@@ -65,14 +86,23 @@ export class AuthService {
   getCurrentUser(): any {
     const userId = localStorage.getItem('userId');
     const email = localStorage.getItem('email');
+    const fullName = localStorage.getItem('userFullName');
     
     console.log('AuthService.getCurrentUser() - userId:', userId);
     console.log('AuthService.getCurrentUser() - email:', email);
+    console.log('AuthService.getCurrentUser() - fullName:', fullName);
+    console.log('localStorage completo:', {
+      userId: localStorage.getItem('userId'),
+      email: localStorage.getItem('email'),
+      userFullName: localStorage.getItem('userFullName'),
+      token: localStorage.getItem('token') ? 'presente' : 'ausente'
+    });
     
     if (userId && email) {
       const user = {
         id: userId,
-        email: email
+        email: email,
+        fullName: fullName || null
       };
       console.log('AuthService.getCurrentUser() - usuario encontrado:', user);
       return user;

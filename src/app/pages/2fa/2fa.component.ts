@@ -46,6 +46,9 @@ export class TwoFactorComponent {
     const code = this.codeForm.value.code;
     this.http.post<any>('https://api.smartentry.space/api/academic/users/verify', { email: this.email, code }).subscribe({
       next: (res) => {
+        console.log('Respuesta completa de 2FA:', res);
+        console.log('Datos del usuario en 2FA:', res.data);
+        
         if (res.status === 'success') {
           // Guardar todos los datos del usuario
           if (res.data?.token) {
@@ -57,6 +60,27 @@ export class TwoFactorComponent {
           if (res.data?.email) {
             localStorage.setItem('email', res.data.email);
           }
+          
+          // Guardar nombre completo del usuario si está disponible
+          console.log('Verificando campos de nombre en 2FA:', {
+            first_name: res.data?.first_name,
+            last_name: res.data?.last_name,
+            name: res.data?.name
+          });
+          
+          if (res.data?.first_name || res.data?.last_name) {
+            const firstName = res.data.first_name || '';
+            const lastName = res.data.last_name || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            localStorage.setItem('userFullName', fullName);
+            console.log('Nombre guardado en 2FA:', fullName);
+          } else if (res.data?.name) {
+            localStorage.setItem('userFullName', res.data.name);
+            console.log('Nombre guardado en 2FA (campo name):', res.data.name);
+          } else {
+            console.log('No se encontraron campos de nombre en la respuesta de 2FA');
+          }
+          
           localStorage.removeItem('pending2faEmail');
           this.router.navigate(['/dashboard']);
         } else {

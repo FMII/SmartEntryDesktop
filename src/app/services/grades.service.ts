@@ -272,16 +272,27 @@ export class GradesService {
     );
   }
 
-  // Obtener calificaciones por materia
-  getGradesBySubject(subjectId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/grades/subject/${subjectId}`).pipe(
+  // Obtener calificaciones por materia y grupo
+  getGradesBySubject(subjectId: number, groupId?: number): Observable<any> {
+    // Como no existe un endpoint para obtener todas las calificaciones de una materia,
+    // vamos a devolver un array vacío y manejar las calificaciones de manera diferente
+    console.log(`No existe endpoint para obtener calificaciones de materia ${subjectId}`);
+    console.log('Las calificaciones se cargarán individualmente por estudiante');
+    return of({ data: { grades: [] } });
+  }
+
+  // Método para intentar obtener calificaciones de un estudiante específico
+  // Este método puede fallar si el usuario autenticado no es el estudiante
+  tryGetStudentGrades(studentId: number, subjectId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/grades/student/${studentId}/${subjectId}`).pipe(
       timeout(10000),
       map(response => {
-        return response;
+        const grades = response?.data?.grades || response?.grades || [];
+        return Array.isArray(grades) ? grades : [];
       }),
       catchError((error: any) => {
-        console.error('Error al obtener calificaciones por materia:', error);
-        return of({ data: { grades: [] } });
+        console.log(`No se pudieron obtener calificaciones para estudiante ${studentId}:`, error.message);
+        return of([]);
       })
     );
   }
@@ -308,5 +319,12 @@ export class GradesService {
     return this.getStudentsByGroupDetailed(groupId).pipe(
       map(data => data.totalStudents)
     );
+  }
+
+  // Limpiar todo el cache del servicio
+  clearAllCache(): void {
+    console.log('Limpiando cache del GradesService...');
+    // Los observables con shareReplay se limpiarán automáticamente
+    // cuando no haya suscripciones activas
   }
 }
