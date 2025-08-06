@@ -106,6 +106,35 @@ export class GradesService {
     );
   }
 
+  // Obtener alumnos de un grupo usando endpoint alternativo
+  getStudentsByGroupAlternative(groupId: number): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/users/`).pipe(
+      timeout(10000),
+      map(response => {
+        console.log('🔍 Respuesta completa de /users/:', response);
+        
+        // Obtener todos los usuarios
+        const allUsers = response?.data || response || [];
+        console.log('🔍 Todos los usuarios:', allUsers);
+        
+        // Filtrar solo estudiantes del grupo específico
+        const groupStudents = allUsers.filter((user: any) => {
+          const isStudent = user.role === 'student' || user.role === 'Student';
+          const belongsToGroup = user.group_id == groupId || user.groups?.id == groupId;
+          
+          console.log(`🔍 Usuario ${user.id}: role=${user.role}, group_id=${user.group_id}, belongsToGroup=${belongsToGroup}`);
+          
+          return isStudent && belongsToGroup;
+        });
+        
+        console.log('🔍 Estudiantes filtrados por grupo:', groupStudents);
+        return groupStudents;
+      }),
+      shareReplay(1),
+      catchError(this.handleError)
+    );
+  }
+
   // Obtener todos los estudiantes (fallback)
   getAllStudents(): Observable<any[]> {
     return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
@@ -113,6 +142,40 @@ export class GradesService {
       map(response => {
         const allStudents = response?.data || [];
         return Array.isArray(allStudents) ? allStudents : [];
+      }),
+      shareReplay(1),
+      catchError(this.handleError)
+    );
+  }
+
+  // Obtener estudiantes por grupo usando endpoint de profesor
+  getStudentsByTeacherGroup(teacherId: number, groupId: number): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/teacher-subject-groups/teacher/${teacherId}`).pipe(
+      timeout(10000),
+      map(response => {
+        console.log('🔍 Respuesta de teacher-subject-groups:', response);
+        
+        const assignments = response?.data || [];
+        const groupAssignments = assignments.filter((assignment: any) => {
+          const matchesGroup = assignment.group_id == groupId || assignment.groups?.id == groupId;
+          console.log(`🔍 Assignment: group_id=${assignment.group_id}, matchesGroup=${matchesGroup}`);
+          return matchesGroup;
+        });
+        
+        console.log('🔍 Asignaciones del grupo:', groupAssignments);
+        
+        // Extraer estudiantes de las asignaciones
+        const students = groupAssignments.map((assignment: any) => {
+          return {
+            id: assignment.student_id || assignment.students?.id,
+            first_name: assignment.students?.first_name || assignment.student_first_name,
+            last_name: assignment.students?.last_name || assignment.student_last_name,
+            group_id: assignment.group_id || assignment.groups?.id
+          };
+        });
+        
+        console.log('🔍 Estudiantes extraídos:', students);
+        return students;
       }),
       shareReplay(1),
       catchError(this.handleError)

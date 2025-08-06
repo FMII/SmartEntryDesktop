@@ -129,33 +129,48 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   onGroupChange(): void {
-    if (!this.selectedGroup || !this.currentTeacher?.id) return;
+    console.log('🔍 onGroupChange - Iniciando...');
+    console.log('🔍 selectedGroup:', this.selectedGroup);
+    console.log('🔍 currentTeacher:', this.currentTeacher);
     
+    if (!this.selectedGroup || !this.currentTeacher?.id) {
+      console.log('🔍 No hay grupo seleccionado o profesor no disponible');
+      return;
+    }
+    
+    // Limpiar datos anteriores
+    console.log('🔍 Datos limpiados al cambiar grupo');
+    this.alumnos = [];
+    this.alumnosFiltrados = [];
+    this.subjectUnits = [];
     
     const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
     
     if (selectedGroupData) {
+      console.log('🔍 Grupo encontrado:', selectedGroupData);
       this.materias = selectedGroupData.subjects || [];
+      console.log('🔍 Materias del grupo:', this.materias);
       
       this.showSubjectDropdown = this.materias && this.materias.length > 1;
       
       if (this.showSubjectDropdown) {
- 
+        console.log('🔍 Múltiples materias, dropdown habilitado');
         this.selectedSubject = '';
       } else if (this.materias && this.materias.length === 1) {
-
+        console.log('🔍 Una sola materia, seleccionando automáticamente');
         this.selectedSubject = this.materias[0].id;
         setTimeout(() => {
           this.onSubjectChange();
         }, 100);
       }
     } else {
-      console.log('No se encontró el grupo seleccionado');
+      console.log('🔍 No se encontró el grupo seleccionado');
       this.materias = [];
       this.showSubjectDropdown = false;
       this.selectedSubject = '';
     }
     
+    console.log('🔍 Llamando a cargarAlumnosDelGrupo...');
     this.cargarAlumnosDelGrupo();
   }
 
@@ -202,44 +217,111 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   cargarAlumnosDelGrupo(): void {
-    if (!this.selectedGroup) return;
+    console.log('🔍 cargarAlumnosDelGrupo - Iniciando...');
+    console.log('🔍 selectedGroup:', this.selectedGroup);
     
+    if (!this.selectedGroup) {
+      console.log('🔍 No hay grupo seleccionado');
+      return;
+    }
     
-    // Intentar obtener estudiantes reales de la API
+    console.log('🔍 Intentando obtener estudiantes del grupo:', this.selectedGroup);
+    
+    // Primero intentar con el endpoint original
+    console.log('🔍 Intentando con endpoint /student-groups/...');
+    
     this.gradesService.getStudentsByGroup(this.selectedGroup).subscribe({
       next: (students) => {
+        console.log('🔍 Estudiantes obtenidos del endpoint original:', students);
+        if (students && students.length > 0) {
+          this.procesarAlumnos(students);
+        } else {
+          console.log('🔍 No se encontraron estudiantes, intentando con endpoint alternativo...');
+          this.intentarEndpointAlternativo();
+        }
+      },
+      error: (error) => {
+        console.error('🔍 Error con endpoint original:', error);
+        console.log('🔍 Intentando con endpoint alternativo...');
+        this.intentarEndpointAlternativo();
+      }
+    });
+  }
+
+  private intentarEndpointAlternativo(): void {
+    console.log('🔍 Intentando con getAllStudents como fallback...');
+    
+    this.gradesService.getAllStudents().subscribe({
+      next: (allStudents) => {
+        console.log('🔍 Todos los estudiantes obtenidos:', allStudents);
         
+        // Filtrar estudiantes del grupo específico
+        const groupStudents = allStudents.filter((student: any) => {
+          const belongsToGroup = student.group_id == this.selectedGroup || 
+                                student.groups?.id == this.selectedGroup ||
+                                student.group_id == parseInt(this.selectedGroup) ||
+                                student.groups?.id == parseInt(this.selectedGroup);
+          
+          console.log(`🔍 Estudiante ${student.id}: group_id=${student.group_id}, belongsToGroup=${belongsToGroup}`);
+          
+          return belongsToGroup;
+        });
+        
+        console.log('🔍 Estudiantes filtrados por grupo:', groupStudents);
+        
+        if (groupStudents.length > 0) {
+          this.procesarAlumnos(groupStudents);
+        } else {
+          console.log('🔍 No se encontraron estudiantes, intentando con endpoint de profesor...');
+          this.intentarEndpointProfesor();
+        }
+      },
+      error: (error) => {
+        console.error('🔍 Error con getAllStudents:', error);
+        console.log('🔍 Intentando con endpoint de profesor...');
+        this.intentarEndpointProfesor();
+      }
+    });
+  }
+
+  private intentarEndpointProfesor(): void {
+    console.log('🔍 Intentando con getStudentsByTeacherGroup...');
+    console.log('🔍 Teacher ID:', this.currentTeacher?.id);
+    console.log('🔍 Group ID:', this.selectedGroup);
+    
+    if (!this.currentTeacher?.id) {
+      console.error('🔍 No hay ID de profesor disponible');
+      this.alumnos = [];
+      this.filtrarAlumnos();
+      return;
+    }
+    
+    this.gradesService.getStudentsByTeacherGroup(this.currentTeacher.id, this.selectedGroup).subscribe({
+      next: (students) => {
+        console.log('🔍 Estudiantes obtenidos del endpoint de profesor:', students);
         this.procesarAlumnos(students);
       },
       error: (error) => {
-        console.log('Error con endpoint específico, intentando con endpoint general...');
-        this.gradesService.getAllStudents().subscribe({
-          next: (allStudents) => {
-            
-            const groupStudents = allStudents.filter((student: any) => 
-              student.group_id == this.selectedGroup || student.groups?.id == this.selectedGroup
-            );
-            
-            this.procesarAlumnos(groupStudents);
-          },
-          error: (error2) => {
-            console.error('Error al cargar alumnos:', error2);
-            console.log('No se pudieron cargar estudiantes de la API');
-            this.alumnos = [];
-            this.filtrarAlumnos();
-          }
-        });
+        console.error('🔍 Error con endpoint de profesor:', error);
+        console.log('🔍 No se pudieron cargar estudiantes de ningún endpoint');
+        this.alumnos = [];
+        this.filtrarAlumnos();
       }
     });
   }
 
   private procesarAlumnos(students: any[]): void {
+    console.log('🔍 procesarAlumnos - Iniciando...');
+    console.log('🔍 Estudiantes a procesar:', students);
+    console.log('🔍 subjectUnits actuales:', this.subjectUnits);
     
     this.alumnos = students.map(studentAssignment => {
       // Extraer información del estudiante desde la estructura real de la API
       const student = studentAssignment.users || studentAssignment;
       const studentId = student.id;
       const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim();
+      
+      console.log(`🔍 Procesando estudiante: ID=${studentId}, Nombre=${studentName}`);
       
       const alumno: any = {
         id: studentId,
@@ -257,6 +339,7 @@ export class GradesComponent implements OnInit, OnDestroy {
       return alumno;
     });
     
+    console.log('🔍 Lista final de alumnos:', this.alumnos);
     this.filtrarAlumnos();
   }
 
@@ -355,6 +438,10 @@ export class GradesComponent implements OnInit, OnDestroy {
   }
 
   filtrarAlumnos(): void {
+    console.log('🔍 filtrarAlumnos - Iniciando...');
+    console.log('🔍 Alumnos totales:', this.alumnos.length);
+    console.log('🔍 searchQuery:', this.searchQuery);
+    console.log('🔍 Alumnos antes del filtro:', this.alumnos);
     
     this.alumnosFiltrados = this.alumnos.filter(alumno => {
       const nombreCompleto = `${alumno.nombre || ''}`.toLowerCase();
@@ -365,6 +452,8 @@ export class GradesComponent implements OnInit, OnDestroy {
       return matchesSearch;
     });
     
+    console.log('🔍 Alumnos filtrados:', this.alumnosFiltrados.length);
+    console.log('🔍 Alumnos filtrados:', this.alumnosFiltrados);
   }
 
   calcularPromedio(alumno: any): number {
