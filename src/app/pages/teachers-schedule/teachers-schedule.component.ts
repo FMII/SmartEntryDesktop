@@ -127,7 +127,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
         this.error = null;
       },
       error: (error) => {
-        console.error('❌ Error al cargar horarios:', error);
+        console.error('Error al cargar horarios:', error);
         this.error = error.message || 'Error al cargar los horarios';
         this.horarios = [];
         this.horariosFiltrados = [];

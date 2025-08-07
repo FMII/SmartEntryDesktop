@@ -20,6 +20,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   materias: any[] = [];
   horarios: any[] = [];
   horariosFiltrados: any[] = [];
+  currentUser: any = null; // Usuario actual autenticado
   
   // Estados
   loading = false;
@@ -42,6 +43,7 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
     
     // Verificar autenticación
     const currentUser = this.authService.getCurrentUser();
+    this.currentUser = currentUser;
     console.log('Usuario actual en horario:', currentUser);
     
     if (!currentUser) {

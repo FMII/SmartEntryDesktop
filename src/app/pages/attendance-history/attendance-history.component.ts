@@ -59,7 +59,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    console.log('🚀 AttendanceHistoryComponent ngOnInit iniciado');
+    console.log('AttendanceHistoryComponent ngOnInit iniciado');
     
     // Verificar autenticación
     const currentUser = this.authService.getCurrentUser();
@@ -205,14 +205,14 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       search: undefined // Eliminado searchQuery
     };
 
-    console.log('🔍 Filtros aplicados:', filtros);
-    console.log('📅 Fecha inicio validación:', {
+    console.log('Filtros aplicados:', filtros);
+    console.log('Fecha inicio validación:', {
       fechaInicio: this.fechaInicio,
       tipo: typeof this.fechaInicio,
       longitud: this.fechaInicio?.length,
       formato: this.fechaInicio ? 'YYYY-MM-DD esperado' : 'vacío'
     });
-    console.log('📅 Fecha fin validación:', {
+    console.log('Fecha fin validación:', {
       fechaFin: this.fechaFin,
       tipo: typeof this.fechaFin,
       longitud: this.fechaFin?.length,
