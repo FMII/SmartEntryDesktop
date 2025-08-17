@@ -22,6 +22,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   registros: any[] = [];
   registrosFiltrados: any[] = [];
   estadisticas: any = null;
+  todosLosAlumnos: any[] = []; // Nueva propiedad para todos los alumnos del grupo
 
   // Filtros
   selectedGroup: any = null;
@@ -219,17 +220,14 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       formato: this.fechaFin ? 'YYYY-MM-DD esperado' : 'vacío'
     });
 
-    // Cargar datos principales (solo necesitamos grupos para completar la información)
-    forkJoin([
+    // Cargar datos principales usando los grupos ya cargados
     this.attendanceHistoryService.getHistorialAsistencia(
       filtros.grupoId,
       filtros.materiaId,
       filtros.fechaInicio,
       filtros.fechaFin,
       undefined // Eliminado filtros.search
-      ),
-      this.attendanceHistoryService.getGrupos() // Solo necesitamos grupos para el nombre
-    ]).pipe(
+    ).pipe(
       catchError(error => {
         console.error('Error al cargar historial de asistencia:', error);
         this.error = error.message || 'Error al cargar el historial de asistencia';
@@ -242,18 +240,15 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       }),
       takeUntil(this.destroy$)
     )
-    .subscribe(([asistencias, grupos]) => {
-      console.log('Datos recibidos:', { asistencias, grupos });
+    .subscribe((asistencias) => {
+      console.log('Datos recibidos:', { asistencias });
       
-      // Los datos ya vienen procesados del servicio, solo necesitamos agregar el nombre del grupo
+      // Los datos ya vienen procesados del servicio, usar el grupo seleccionado
       this.registros = asistencias.map(reg => {
-        // Buscar grupo para completar el nombre
-        const grupo = grupos.find(g => g.id === reg.group_id);
-
         const registroCompleto = {
           ...reg,
           // student_name y subject_name ya vienen del servicio
-          group_name: grupo ? grupo.name : 'Grupo desconocido',
+          group_name: this.getNombreGrupoSeleccionado(),
         };
 
         console.log('Registro procesado:', registroCompleto);
@@ -272,6 +267,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       console.log('Registros procesados:', this.registros.length, 'Página actual:', this.currentPage);
       
       this.cdr.markForCheck();
+      
+      // Cargar todos los alumnos del grupo
+      this.cargarTodosLosAlumnos();
     });
   }
 
@@ -305,6 +303,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     }
     
     this.cargarHistorialAsistencia();
+    
+    // Cargar todos los alumnos del grupo
+    this.cargarTodosLosAlumnos();
   }
 
   onMateriaChange(): void {
@@ -583,5 +584,41 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     }
     
     return paginas;
+  }
+
+  // Métodos para la nueva tabla de alumnos
+  getNombreGrupoSeleccionado(): string {
+    if (!this.selectedGroup || !this.grupos) {
+      return 'Grupo no disponible';
+    }
+    
+    const grupo = this.grupos.find(g => g.id == this.selectedGroup);
+    return grupo ? grupo.name : 'Grupo no disponible';
+  }
+
+  getEstadoAsistenciaAlumnoActual(alumnoId: number): any {
+    if (!this.registros || this.registros.length === 0) {
+      return null;
+    }
+
+    // Buscar el registro más reciente para este alumno
+    const registrosAlumno = this.registros.filter(reg => reg.user_id === alumnoId);
+    return registrosAlumno.length > 0 ? 
+      registrosAlumno.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] : 
+      null;
+  }
+
+  cargarTodosLosAlumnos(): void {
+    if (!this.selectedGroup) {
+      this.todosLosAlumnos = [];
+      return;
+    }
+
+    // Usar el endpoint que ya tienes para obtener alumnos del grupo
+    this.attendanceHistoryService.getAlumnosDelGrupo(this.selectedGroup)
+      .subscribe(alumnos => {
+        this.todosLosAlumnos = Array.isArray(alumnos) ? alumnos : [];
+        this.cdr.markForCheck();
+      });
   }
 }

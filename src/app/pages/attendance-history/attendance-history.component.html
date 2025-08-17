@@ -83,6 +83,58 @@
             <!-- Línea separadora -->
             <div class="separator"></div>
 
+            <!-- Nueva tabla: Todos los alumnos del grupo -->
+            <div class="section-header">
+                <p class="section-description">Lista completa de estudiantes del grupo seleccionado</p>
+            </div>
+
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead class="table-header">
+                            <tr>
+                                <th>ID</th>
+                                <th>NOMBRE DEL ALUMNO</th>
+                                <th>GRUPO</th>
+                                <th>ÚLTIMA FECHA</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            <tr *ngFor="let alumno of todosLosAlumnos" class="table-row">
+                                <td>{{ alumno.id || alumno.user_id }}</td>
+                                <td>
+                                    <span *ngIf="alumno.first_name || alumno.last_name">
+                                        {{ (alumno.first_name || '') + ' ' + (alumno.last_name || '') }}
+                                    </span>
+                                    <span *ngIf="!alumno.first_name && !alumno.last_name">
+                                        {{ alumno.student_name || 'Nombre no disponible' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span *ngIf="selectedGroup">
+                                        {{ getNombreGrupoSeleccionado() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span *ngIf="getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)">
+                                        {{ formatearFecha(getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)?.date) }}
+                                    </span>
+                                    <span *ngIf="!getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)">
+                                        -
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-summary">
+                    <p>Total de alumnos en el grupo: {{ todosLosAlumnos.length }}</p>
+                </div>
+            </div>
+
+            <!-- Línea separadora -->
+            <div class="separator"></div>
+
             <!-- Mensaje de error -->
             <div *ngIf="error" class="error-message">
                 <i class="ti ti-alert-circle"></i>

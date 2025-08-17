@@ -384,23 +384,68 @@ export class AttendanceHistoryService {
   // Obtener alumnos del grupo
   getAlumnosDelGrupo(groupId: number): Observable<any[]> {
     console.log('📡 Obteniendo alumnos del grupo:', groupId);
-    return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
+    
+    // Usar el endpoint correcto según la documentación del usuario
+    return this.http.get<any>(`${this.apiUrl}/student-groups/${groupId}/students`).pipe(
       timeout(10000),
       map(response => {
-        console.log('Respuesta todos los estudiantes:', response);
-        const allStudents = response?.data || [];
-        const students = Array.isArray(allStudents) ? allStudents : [];
-        
-        // Filtrar por grupo
-        const groupStudents = students.filter((student: any) => 
-          student.group_id === groupId
-        );
-        
-        console.log('Alumnos del grupo', groupId, ':', groupStudents);
-        return groupStudents;
+        console.log('Respuesta alumnos del grupo específico:', response);
+        let students: any[] = [];
+
+        if (response && typeof response === 'object') {
+          if (response.status === 'success' && response.data && response.data.students && Array.isArray(response.data.students)) {
+            // Extraer la lista de estudiantes del objeto data.students
+            students = response.data.students.map((student: any) => ({
+              id: student.student_id,
+              user_id: student.student_id,
+              first_name: student.first_name,
+              last_name: student.last_name,
+              email: student.email,
+              academic_year: student.academic_year,
+              group_id: groupId
+            }));
+          } else if (response.data && Array.isArray(response.data)) {
+            // Fallback si la estructura es diferente
+            students = response.data;
+          }
+        }
+
+        console.log('Alumnos del grupo', groupId, 'procesados:', students);
+        return students;
       }),
-      shareReplay(1),
-      catchError(this.handleError)
+      catchError(error => {
+        console.log('Endpoint específico falló, intentando con endpoint general...');
+        
+        // Fallback: obtener todos los estudiantes y filtrar por grupo
+        return this.http.get<any>(`${this.apiUrl}/student-groups/`).pipe(
+          timeout(10000),
+          map(response => {
+            console.log('Respuesta todos los estudiantes (fallback):', response);
+            const allStudents = response?.data || [];
+            const students = Array.isArray(allStudents) ? allStudents : [];
+
+            // Filtrar por grupo
+            const groupStudents = students.filter((student: any) =>
+              student.group_id === groupId
+            );
+
+            // Mapear a la estructura esperada
+            const mappedStudents = groupStudents.map((student: any) => ({
+              id: student.student_id || student.id,
+              user_id: student.student_id || student.id,
+              first_name: student.users?.first_name || student.first_name,
+              last_name: student.users?.last_name || student.last_name,
+              email: student.users?.email || student.email,
+              academic_year: student.academic_year,
+              group_id: groupId
+            }));
+
+            console.log('Alumnos del grupo', groupId, ' (fallback):', mappedStudents);
+            return mappedStudents;
+          })
+        );
+      }),
+      shareReplay(1)
     );
   }
 

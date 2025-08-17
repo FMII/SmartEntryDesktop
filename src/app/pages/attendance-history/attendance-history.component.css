@@ -841,3 +841,32 @@
     outline: 2px solid #262626;
     outline-offset: 2px;
 }
+
+/* Estilos para la nueva tabla de alumnos */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.section-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.table-summary {
+  margin-top: 1rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.table-summary p {
+  margin: 0;
+}
