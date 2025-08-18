@@ -1032,12 +1032,10 @@
 .class-status-indicator {
   margin-top: 16px;
   margin-bottom: 16px;
-  /* Alinear con la columna ACCIONES de la tabla pero sin cortar el contenido */
-  margin-left: auto; /* Usar auto para alinear a la derecha */
-  margin-right: 0; /* Sin margen derecho */
-  /* Asegurar que el banner esté alineado correctamente */
+  /* Extender sobre toda la tabla */
+  width: 100%;
   display: flex;
-  justify-content: flex-end;
+  justify-content: left;
   /* Asegurar que el banner no se corte */
   overflow: visible;
   position: relative;
@@ -1047,18 +1045,17 @@
   display: flex;
   align-items: center;
   gap: 16px; /* Restaurado a 16px para mejor legibilidad */
-  padding: 16px; /* Restaurado a 16px para mejor proporción */
+  padding: 20px; /* Aumentado padding para mejor proporción */
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
-  /* Asegurar que el ancho sea suficiente para el contenido */
-  min-width: 200px; /* Ancho mínimo para que se vea completo */
-  max-width: 250px; /* Ancho máximo para mantener proporción */
-  width: auto; /* Ancho automático basado en el contenido */
-  justify-content: flex-start; /* Alinear contenido a la izquierda */
-  text-align: left; /* Texto alineado a la izquierda */
+  /* Extender sobre toda la tabla */
+  width: 100%;
+  max-width: 100%;
+  justify-content: left; /* Centrar contenido */
+  text-align: left; /* Texto centrado */
   /* Asegurar que el contenido se ajuste perfectamente */
   box-sizing: border-box;
   /* Asegurar que no se corte */
@@ -1099,11 +1096,11 @@
   min-width: 0; /* Permitir que el texto se ajuste */
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Alinear a la izquierda */
+  align-items: left; /* Centrar contenido */
 }
 
 .status-title {
-  font-size: 14px; /* Restaurado a 14px para mejor legibilidad */
+  font-size: 16px; /* Aumentado para mejor visibilidad */
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 4px; /* Restaurado a 4px */
@@ -1111,18 +1108,18 @@
   /* Asegurar que el texto se ajuste al ancho disponible */
   word-wrap: break-word;
   overflow-wrap: break-word;
-  text-align: left; /* Texto alineado a la izquierda */
+  text-align: left; /* Texto centrado */
   width: 100%;
 }
 
 .status-details {
-  font-size: 12px; /* Restaurado a 12px para mejor legibilidad */
+  font-size: 14px; /* Aumentado para mejor legibilidad */
   color: #64748b;
   line-height: 1.4; /* Restaurado a 1.4 */
   /* Asegurar que el texto se ajuste al ancho disponible */
   word-wrap: break-word;
   overflow-wrap: break-word;
-  text-align: left; /* Texto alineado a la izquierda */
+  text-align: left; /* Texto centrado */
   width: 100%;
 }
 
