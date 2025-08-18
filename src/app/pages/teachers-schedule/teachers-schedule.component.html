@@ -30,18 +30,24 @@
                     </div>
 
                     <!-- Dropdown de materias -->
-                    <div class="filter-group">
+                    <div class="filter-group" *ngIf="selectedGroup && materias.length > 0">
                         <label for="subjectSelect" class="filter-label">Materia:</label>
                         <select id="subjectSelect" 
                                 [(ngModel)]="selectedSubject" 
                                 (change)="onSubjectChange()"
-                                [disabled]="loading || !selectedGroup"
+                                [disabled]="loading"
                                 class="filter-select">
                             <option value="" disabled selected>Selecciona una materia</option>
                             <option *ngFor="let materia of materias || []" [value]="materia.id">
                                 {{ materia.nombre || materia.name }}
                             </option>
                         </select>
+                    </div>
+
+                    <!-- Indicador cuando no hay materias para el grupo -->
+                    <div class="filter-group" *ngIf="selectedGroup && materias.length === 0">
+                        <label class="filter-label">Materia:</label>
+                        <span class="subject-indicator no-subjects">No hay materias asignadas a este grupo</span>
                     </div>
 
                                          <!-- Controles de actualización -->

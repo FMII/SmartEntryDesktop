@@ -28,6 +28,9 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   autoRefreshEnabled = false;
   autoRefreshInterval: any;
   
+  // Flag para evitar llamadas múltiples
+  private isLoadingData = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -66,7 +69,14 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   }
 
   cargarDatosIniciales(): void {
+    // Evitar llamadas múltiples
+    if (this.isLoadingData) {
+      console.log('cargarDatosIniciales ya está en ejecución, ignorando llamada...');
+      return;
+    }
+    
     console.log('Iniciando cargarDatosIniciales en horarios...');
+    this.isLoadingData = true;
     this.loading = true;
     this.error = null;
     this.cdr.markForCheck();
@@ -109,20 +119,10 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
         });
         this.grupos = Array.from(gruposUnicos.values());
         
-        // Extraer materias únicas para el filtro
-        const materiasUnicas = new Map();
-        schedules.forEach(schedule => {
-          if (schedule.subject_id && schedule.materia) {
-            materiasUnicas.set(schedule.subject_id, {
-              id: schedule.subject_id,
-              name: schedule.materia
-            });
-          }
-        });
-        this.materias = Array.from(materiasUnicas.values());
-        
+        console.log('Grupos extraídos:', this.grupos);
+        console.log('Estructura de un schedule de ejemplo:', schedules[0]);
         console.log('Grupos disponibles:', this.grupos);
-        console.log('Materias disponibles:', this.materias);
+        console.log('Materias disponibles (vacío al inicio):', this.materias);
         
         this.error = null;
       },
@@ -133,14 +133,88 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
         this.horariosFiltrados = [];
         this.grupos = [];
         this.materias = [];
+      },
+      complete: () => {
+        this.isLoadingData = false;
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
 
   onGroupChange(): void {
-    this.selectedSubject = ''; // Limpiar materia al cambiar grupo
+    console.log('Grupo cambiado:', this.selectedGroup);
+    console.log('Horarios disponibles:', this.horarios);
+    
+    // Limpiar materia al cambiar grupo
+    this.selectedSubject = '';
+    
+    // Filtrar las materias solo por el grupo seleccionado
+    if (this.selectedGroup) {
+      const materiasDelGrupo = new Map();
+      
+      console.log('Filtrando materias para el grupo:', this.selectedGroup);
+      console.log('Tipo de selectedGroup:', typeof this.selectedGroup);
+      
+      this.horarios.forEach(schedule => {
+        console.log('Revisando schedule:', {
+          schedule_group_id: schedule.group_id,
+          schedule_group_id_type: typeof schedule.group_id,
+          schedule_grupo: schedule.grupo,
+          schedule_grupo_type: typeof schedule.grupo,
+          selectedGroup: this.selectedGroup,
+          selectedGroup_type: typeof this.selectedGroup,
+          match: schedule.group_id == this.selectedGroup,
+          subject_id: schedule.subject_id,
+          materia: schedule.materia
+        });
+        
+        // Comparar usando múltiples criterios para manejar diferentes tipos de datos
+        const grupoCoincide = schedule.group_id == this.selectedGroup || 
+                              schedule.grupo == this.selectedGroup ||
+                              schedule.group_id == parseInt(this.selectedGroup) ||
+                              schedule.grupo == this.selectedGroup;
+        
+        if (grupoCoincide && schedule.subject_id && schedule.materia) {
+          materiasDelGrupo.set(schedule.subject_id, {
+            id: schedule.subject_id,
+            name: schedule.materia
+          });
+          console.log('Materia agregada:', schedule.materia);
+        }
+      });
+      
+      this.materias = Array.from(materiasDelGrupo.values());
+      console.log(`Materias del grupo ${this.selectedGroup}:`, this.materias);
+      console.log('Total de materias encontradas:', this.materias.length);
+      console.log('Estado de materias después de asignar:', {
+        materias: this.materias,
+        materiasLength: this.materias.length,
+        materiasType: typeof this.materias,
+        isArray: Array.isArray(this.materias)
+      });
+      
+      // Debug adicional
+      this.debugMateriasFiltrado();
+      
+      // Forzar la detección de cambios de Angular
+      this.cdr.detectChanges();
+      console.log('Change detection forzado después de actualizar materias');
+    } else {
+      // Si no hay grupo seleccionado, no mostrar materias
+      this.materias = [];
+      console.log('No hay grupo seleccionado, materias vacías');
+    }
+    
     this.filtrarHorarios();
     this.cdr.markForCheck();
+    console.log('Estado final después de onGroupChange:', {
+      selectedGroup: this.selectedGroup,
+      materias: this.materias,
+      materiasLength: this.materias.length,
+      showSubjectDropdown: this.selectedGroup && this.materias.length > 0,
+      showNoSubjectsMessage: this.selectedGroup && this.materias.length === 0
+    });
   }
 
   onSubjectChange(): void {
@@ -213,8 +287,53 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
   private setupAutoRefresh(): void {
     this.clearAutoRefresh();
     this.autoRefreshInterval = setInterval(() => {
-      this.cargarDatosIniciales();
+      console.log('Auto-refresh ejecutándose...');
+      
+      // NO recargar datos completos si ya hay un grupo seleccionado
+      // Solo actualizar los horarios existentes
+      if (this.selectedGroup && this.horarios.length > 0) {
+        console.log('Auto-refresh: Grupo ya seleccionado, solo actualizando horarios...');
+        this.actualizarHorariosSinResetearMaterias();
+      } else {
+        console.log('Auto-refresh: Sin grupo seleccionado, recargando datos completos...');
+        this.cargarDatosIniciales();
+      }
     }, 30000); // 30 segundos
+  }
+
+  // Método para actualizar horarios sin resetear materias
+  private actualizarHorariosSinResetearMaterias(): void {
+    console.log('Actualizando horarios sin resetear materias...');
+    
+    const currentTeacher = this.authService.getCurrentUser();
+    if (!currentTeacher?.id) {
+      console.log('No hay profesor autenticado para actualizar horarios');
+      return;
+    }
+
+    // Solo actualizar horarios, mantener grupos y materias
+    this.scheduleService.getFormattedSchedules(currentTeacher.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (schedules) => {
+        console.log('Horarios actualizados:', schedules);
+        
+        // Actualizar solo los horarios
+        this.horarios = schedules;
+        
+        // Re-aplicar filtros con los datos actualizados
+        this.filtrarHorarios();
+        
+        // NO resetear materias - mantener las del grupo seleccionado
+        console.log('Horarios actualizados, materias preservadas:', this.materias);
+        
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error al actualizar horarios:', error);
+        // No mostrar error al usuario para auto-refresh
+      }
+    });
   }
 
   private clearAutoRefresh(): void {
@@ -222,5 +341,25 @@ export class TeachersScheduleComponent implements OnInit, OnDestroy {
       clearInterval(this.autoRefreshInterval);
       this.autoRefreshInterval = null;
     }
+  }
+
+  // Método de debug para verificar el filtrado
+  private debugMateriasFiltrado(): void {
+    console.log('=== DEBUG MATERIAS FILTRADO ===');
+    console.log('Grupo seleccionado:', this.selectedGroup);
+    console.log('Tipo de grupo seleccionado:', typeof this.selectedGroup);
+    console.log('Total de horarios:', this.horarios.length);
+    
+    const horariosDelGrupo = this.horarios.filter(schedule => {
+      const match = schedule.group_id == this.selectedGroup || 
+                    schedule.grupo == this.selectedGroup ||
+                    schedule.group_id == parseInt(this.selectedGroup) ||
+                    schedule.grupo == this.selectedGroup;
+      return match;
+    });
+    
+    console.log('Horarios del grupo:', horariosDelGrupo);
+    console.log('Materias únicas del grupo:', [...new Set(horariosDelGrupo.map(h => h.materia))]);
+    console.log('=== FIN DEBUG ===');
   }
 }

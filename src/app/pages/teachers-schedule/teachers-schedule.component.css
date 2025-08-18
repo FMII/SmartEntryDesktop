@@ -136,6 +136,24 @@
     cursor: not-allowed;
 }
 
+/* ===== INDICADOR DE MATERIA ===== */
+.subject-indicator {
+    padding: 12px 16px;
+    background-color: #F3F4F6;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.subject-indicator.no-subjects {
+    background-color: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+    font-style: italic;
+}
+
 /* ===== CONTROLES ===== */
 .control-btn {
     display: flex;
