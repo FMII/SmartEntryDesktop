@@ -44,6 +44,12 @@
                         <label class="filter-label">Materia:</label>
                         <span class="subject-indicator">{{ materias[0].name }}</span>
                     </div>
+
+                    <!-- Indicador cuando no hay materias -->
+                    <div class="filter-group" *ngIf="!showSubjectDropdown && materias.length === 0">
+                        <label class="filter-label">Materia:</label>
+                        <span class="subject-indicator no-subjects">No hay materias asignadas a este grupo</span>
+                    </div>
                 </div>
 
                 <!-- Segunda fila de filtros -->

@@ -116,19 +116,12 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Cargar grupos y materias asignadas al profesor
-    const requests = [
-      this.attendanceHistoryService.getGruposAsignados(currentTeacher.id),
-      this.attendanceHistoryService.getMateriasAsignadas(currentTeacher.id)
-    ];
-
-    console.log('Enviando peticiones HTTP para datos filtrados por profesor...');
-
-    forkJoin(requests)
+    // Cargar solo grupos asignados al profesor (las materias se cargarán cuando se seleccione un grupo)
+    this.attendanceHistoryService.getGruposAsignados(currentTeacher.id)
       .pipe(
         catchError(error => {
-          console.error('Error cargando datos iniciales:', error);
-          this.error = 'Error al cargar los datos iniciales';
+          console.error('Error cargando grupos:', error);
+          this.error = 'Error al cargar los grupos';
           return [];
         }),
         finalize(() => {
@@ -138,43 +131,51 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$)
       )
-      .subscribe(([grupos, materias]) => {
-        console.log('Datos filtrados recibidos:', { grupos, materias });
+      .subscribe((grupos) => {
+        console.log('Grupos asignados al profesor:', grupos);
         
         // Asignar grupos del profesor
         this.grupos = Array.isArray(grupos) ? grupos : [];
-          
-        // Asignar materias del profesor
-        this.materias = Array.isArray(materias) ? materias : [];
-        
-        console.log('Grupos asignados al profesor:', this.grupos);
-        console.log('Materias asignadas al profesor:', this.materias);
         
         if (this.grupos.length > 0) {
           this.selectedGroup = this.grupos[0].id;
           console.log('Grupo seleccionado:', this.selectedGroup);
           
-          // Aplicar la lógica del dropdown condicional para el grupo inicial
-          const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
-          if (selectedGroupData) {
-            // Determinar si mostrar el dropdown de materias
-            this.showSubjectDropdown = this.materias && this.materias.length > 1;
-            
-            if (this.showSubjectDropdown) {
-              // Si hay múltiples materias, resetear la selección
-              this.selectedMateria = null;
-            } else if (this.materias && this.materias.length === 1) {
-              // Si solo hay una materia, seleccionarla automáticamente
-              this.selectedMateria = this.materias[0].id;
-            }
-          }
+          // Cargar las materias del primer grupo seleccionado
+          this.attendanceHistoryService.getMateriasDelGrupo(currentTeacher.id, this.selectedGroup)
+            .subscribe(materiasDelGrupo => {
+              console.log('Materias del grupo inicial:', materiasDelGrupo);
+              
+              // Asignar materias del grupo
+              this.materias = Array.isArray(materiasDelGrupo) ? materiasDelGrupo : [];
+              
+              // Aplicar la lógica del dropdown condicional para el grupo inicial
+              if (this.materias && this.materias.length > 1) {
+                // Si hay múltiples materias, mostrar el dropdown
+                this.showSubjectDropdown = true;
+                this.selectedMateria = null;
+              } else if (this.materias && this.materias.length === 1) {
+                // Si solo hay una materia, seleccionarla automáticamente
+                this.showSubjectDropdown = false;
+                this.selectedMateria = this.materias[0].id;
+              } else {
+                // Si no hay materias
+                this.showSubjectDropdown = false;
+                this.selectedMateria = null;
+              }
+              
+              this.cdr.markForCheck();
+              
+              // Cargar historial después de configurar las materias
+              console.log('Cargando historial de asistencia...');
+              this.cargarHistorialAsistencia();
+            });
         } else {
           console.log('No hay grupos disponibles para el profesor');
+          this.materias = [];
+          this.showSubjectDropdown = false;
+          this.selectedMateria = null;
         }
-        
-        // Siempre cargar historial, con o sin grupo seleccionado
-        console.log('Cargando historial de asistencia...');
-        this.cargarHistorialAsistencia();
         
         this.cdr.markForCheck();
       });
@@ -286,26 +287,67 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
     
     if (selectedGroupData) {
-      // Determinar si mostrar el dropdown de materias
-      this.showSubjectDropdown = this.materias && this.materias.length > 1;
+      console.log('Grupo encontrado:', selectedGroupData);
       
-      if (this.showSubjectDropdown) {
-        // Si hay múltiples materias, resetear la selección
+      // Obtener solo las materias del grupo seleccionado
+      const currentTeacher = this.authService.getCurrentUser();
+      if (currentTeacher?.id) {
+        console.log('Obteniendo materias del grupo', this.selectedGroup, 'para el profesor', currentTeacher.id);
+        
+        this.attendanceHistoryService.getMateriasDelGrupo(currentTeacher.id, this.selectedGroup)
+          .subscribe(materiasDelGrupo => {
+            console.log('Materias del grupo seleccionado:', materiasDelGrupo);
+            console.log('Total de materias encontradas para el grupo:', materiasDelGrupo.length);
+            
+            // Actualizar las materias disponibles solo con las del grupo
+            this.materias = materiasDelGrupo;
+            
+            // Determinar si mostrar el dropdown de materias
+            this.showSubjectDropdown = this.materias && this.materias.length > 1;
+            
+            if (this.showSubjectDropdown) {
+              // Si hay múltiples materias, resetear la selección
+              this.selectedMateria = null;
+              console.log('Mostrando dropdown de materias (múltiples materias disponibles)');
+            } else if (this.materias && this.materias.length === 1) {
+              // Si solo hay una materia, seleccionarla automáticamente
+              this.selectedMateria = this.materias[0].id;
+              console.log('Materia única seleccionada automáticamente:', this.materias[0].name);
+            } else {
+              // Si no hay materias, resetear la selección
+              this.selectedMateria = null;
+              console.log('No hay materias disponibles para este grupo');
+            }
+            
+            this.cdr.markForCheck();
+            
+            // Cargar historial después de configurar las materias
+            console.log('Cargando historial de asistencia después de configurar materias...');
+            this.cargarHistorialAsistencia();
+            
+            // Cargar todos los alumnos del grupo
+            this.cargarTodosLosAlumnos();
+          });
+      } else {
+        console.error('No se pudo obtener el profesor autenticado');
+        this.materias = [];
+        this.showSubjectDropdown = false;
         this.selectedMateria = null;
-      } else if (this.materias && this.materias.length === 1) {
-        // Si solo hay una materia, seleccionarla automáticamente
-        this.selectedMateria = this.materias[0].id;
+        
+        // Cargar historial y alumnos de todas formas
+        this.cargarHistorialAsistencia();
+        this.cargarTodosLosAlumnos();
       }
     } else {
       console.log('No se encontró el grupo seleccionado');
       this.showSubjectDropdown = false;
       this.selectedMateria = null;
+      this.materias = [];
+      
+      // Cargar historial y alumnos de todas formas
+      this.cargarHistorialAsistencia();
+      this.cargarTodosLosAlumnos();
     }
-    
-    this.cargarHistorialAsistencia();
-    
-    // Cargar todos los alumnos del grupo
-    this.cargarTodosLosAlumnos();
   }
 
   onMateriaChange(): void {

@@ -145,6 +145,13 @@
     color: #374151;
 }
 
+.subject-indicator.no-subjects {
+    background-color: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+    font-style: italic;
+}
+
 /* ===== CONTROLES ===== */
 .control-btn {
     display: flex;

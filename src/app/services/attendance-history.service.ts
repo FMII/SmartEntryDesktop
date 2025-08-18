@@ -360,6 +360,32 @@ export class AttendanceHistoryService {
     );
   }
 
+  // Obtener materias asignadas a un grupo específico del profesor
+  getMateriasDelGrupo(teacherId: number, groupId: number): Observable<Materia[]> {
+    return this.getTeacherAssignments(teacherId).pipe(
+      map(assignments => {
+        // Filtrar solo las asignaciones que corresponden al grupo específico
+        const groupAssignments = assignments.filter((assignment: any) => 
+          assignment.groups?.id == groupId || assignment.group_id == groupId
+        );
+        
+        const materias = groupAssignments.map((assignment: any) => ({
+          id: assignment.subjects?.id || assignment.subject_id,
+          name: assignment.subjects?.name || 'Sin nombre',
+          subject_id: assignment.subject_id
+        }));
+        
+        // Eliminar duplicados basándose en el ID de la materia
+        const uniqueMaterias = materias.filter((materia, index, self) => 
+          index === self.findIndex(m => m.id === materia.id)
+        );
+        
+        console.log(`Materias del grupo ${groupId} asignadas al profesor ${teacherId}:`, uniqueMaterias);
+        return uniqueMaterias;
+      })
+    );
+  }
+
   // Obtener grupos asignados al profesor
   getGruposAsignados(teacherId: number): Observable<Grupo[]> {
     return this.getTeacherAssignments(teacherId).pipe(
