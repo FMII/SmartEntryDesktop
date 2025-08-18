@@ -63,6 +63,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Mostrar información sobre el filtrado
+    if (this.fechaInicio === this.fechaFin) {
+      console.log('Filtrando por el mismo día:', this.fechaInicio);
+    } else {
+      console.log('Filtrando por rango de fechas:', {
+        desde: this.fechaInicio,
+        hasta: this.fechaFin
+      });
+    }
+    
     console.log('Cargando datos de gráfica para rango:', { 
       fechaInicio: this.fechaInicio, 
       fechaFin: this.fechaFin 
@@ -80,6 +90,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             total: g.top_student ? g.top_student.absences : 0,
             estudiante: g.top_student ? g.top_student.name : 'Sin datos'
           }));
+          
+          console.log(`Se encontraron ${this.ausenciasPorGrupo.length} grupos con datos`);
         } else {
           console.log('No hay datos en la respuesta de la API');
           this.ausenciasPorGrupo = [
@@ -223,6 +235,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
     
     if (this.fechaInicio && this.fechaFin) {
+      // Validar que la fecha de inicio no sea mayor que la de fin
+      if (this.fechaInicio > this.fechaFin) {
+        console.warn('La fecha de inicio no puede ser mayor que la fecha de fin');
+        // Intercambiar las fechas automáticamente
+        const temp = this.fechaInicio;
+        this.fechaInicio = this.fechaFin;
+        this.fechaFin = temp;
+        console.log('Fechas intercambiadas automáticamente:', {
+          inicio: this.fechaInicio,
+          fin: this.fechaFin
+        });
+      }
+      
+      // Si las fechas son iguales, mostrar mensaje informativo
+      if (this.fechaInicio === this.fechaFin) {
+        console.log('Filtrando por el mismo día:', this.fechaInicio);
+      }
+      
       this.cargarDatos();
     }
   }

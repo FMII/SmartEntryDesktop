@@ -227,11 +227,21 @@ export class AttendanceHistoryService {
             // Extraer información de la materia
             const subjectName = item.subjects?.name || 'Sin materia';
             
+            // Procesar la fecha para asegurar formato correcto
+            let processedDate = item.date;
+            if (item.date && typeof item.date === 'string') {
+              // Si la fecha incluye T o Z, es formato ISO, extraer solo la parte de fecha
+              if (item.date.includes('T') || item.date.includes('Z')) {
+                processedDate = item.date.split('T')[0];
+                console.log('Fecha procesada en servicio:', item.date, '->', processedDate);
+              }
+            }
+            
             return {
               id: item.id,
               user_id: item.user_id, // Este campo debería venir en la respuesta
               student_name: studentName,
-              date: item.date,
+              date: processedDate,
               status: item.status,
               subject_id: subjectId || 0, // Usar el subjectId del parámetro
               subject_name: subjectName,
@@ -248,7 +258,7 @@ export class AttendanceHistoryService {
         }
         
         console.log('Historial procesado (nueva API):', processedResponse);
-        console.log(`✅ Se procesaron ${processedResponse.length} registros de asistencia`);
+        console.log(`Se procesaron ${processedResponse.length} registros de asistencia`);
         
         return processedResponse;
       }),

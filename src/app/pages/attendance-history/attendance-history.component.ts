@@ -573,12 +573,45 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   formatearFecha(fecha: string | Date): string {
     if (!fecha) return '';
     
-    const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
-    return date.toLocaleDateString('es-ES', {
+    console.log('🔍 formatearFecha recibió:', fecha, 'tipo:', typeof fecha);
+    
+    let date: Date;
+    
+    if (typeof fecha === 'string') {
+      // Para fechas en formato string, crear la fecha de manera que preserve la fecha local
+      // en lugar de interpretarla como UTC
+      if (fecha.includes('T') || fecha.includes('Z')) {
+        // Es una fecha ISO, extraer solo la parte de fecha
+        const fechaPart = fecha.split('T')[0];
+        const [year, month, day] = fechaPart.split('-').map(Number);
+        date = new Date(year, month - 1, day); // month - 1 porque los meses en JS van de 0-11
+        console.log('Fecha ISO detectada, extraída:', fechaPart, 'creada como:', date);
+      } else {
+        // Es una fecha simple YYYY-MM-DD
+        const [year, month, day] = fecha.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+        console.log('Fecha simple detectada, creada como:', date);
+      }
+    } else {
+      date = fecha;
+      console.log('Objeto Date recibido:', date);
+    }
+    
+    // Verificar que la fecha sea válida
+    if (isNaN(date.getTime())) {
+      console.warn('Fecha inválida:', fecha);
+      return fecha.toString();
+    }
+    
+    // Formatear a DD/MM/YYYY
+    const fechaFormateada = date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
+    
+    console.log('Fecha formateada:', fechaFormateada);
+    return fechaFormateada;
   }
 
   getEstadoAsistenciaClass(estado: string): string {
@@ -662,5 +695,92 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
         this.todosLosAlumnos = Array.isArray(alumnos) ? alumnos : [];
         this.cdr.markForCheck();
       });
+  }
+
+  // Método para probar formatos de fecha
+  probarFormatosFecha(): void {
+    console.log('PROBANDO FORMATOS DE FECHA');
+    
+    if (this.fechaInicio) {
+      // Assuming dashboardService is available, otherwise this will cause an error.
+      // For now, commenting out as it's not defined in the original file.
+      // this.dashboardService.probarFormatosFecha(this.fechaInicio);
+    } else {
+      // Probar con una fecha de ejemplo
+      // this.dashboardService.probarFormatosFecha('2025-08-10');
+    }
+  }
+
+  // Pipe personalizado para formatear fechas
+  formatearFechaPipe(fecha: string | Date): string {
+    if (!fecha) return '';
+    
+    try {
+      let date: Date;
+      
+      if (typeof fecha === 'string') {
+        // Si es una fecha ISO completa, extraer solo la parte de fecha
+        if (fecha.includes('T') || fecha.includes('Z')) {
+          const fechaPart = fecha.split('T')[0];
+          const [year, month, day] = fechaPart.split('-').map(Number);
+          date = new Date(year, month - 1, day);
+        } else {
+          // Es una fecha simple YYYY-MM-DD
+          const [year, month, day] = fecha.split('-').map(Number);
+          date = new Date(year, month - 1, day);
+        }
+      } else {
+        date = fecha;
+      }
+      
+      // Verificar que la fecha sea válida
+      if (isNaN(date.getTime())) {
+        return fecha.toString();
+      }
+      
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error al formatear fecha:', error, 'fecha original:', fecha);
+      return fecha.toString();
+    }
+  }
+
+  // Método alternativo para formatear fechas (más simple)
+  formatearFechaSimple(fecha: string | Date): string {
+    if (!fecha) return '';
+    
+    try {
+      // Si es string y contiene T o Z, extraer solo la parte de fecha
+      if (typeof fecha === 'string' && (fecha.includes('T') || fecha.includes('Z'))) {
+        const fechaPart = fecha.split('T')[0];
+        // Convertir YYYY-MM-DD a DD/MM/YYYY
+        const [year, month, day] = fechaPart.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Si es string simple en formato YYYY-MM-DD, convertirlo a DD/MM/YYYY
+      if (typeof fecha === 'string' && fecha.includes('-') && fecha.length === 10) {
+        const [year, month, day] = fecha.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Si es Date, formatearlo a DD/MM/YYYY
+      if (fecha instanceof Date) {
+        return fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      
+      return String(fecha);
+    } catch (error) {
+      console.error('Error en formatearFechaSimple:', error);
+      return String(fecha);
+    }
   }
 }

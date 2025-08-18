@@ -123,7 +123,7 @@
                                 </td>
                                 <td>
                                     <span *ngIf="getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)">
-                                        {{ formatearFecha(getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)?.date) }}
+                                        {{ formatearFechaSimple(getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)?.date) }}
                                     </span>
                                     <span *ngIf="!getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)">
                                         -
@@ -173,7 +173,7 @@
                                 <td>{{ registro.student_name }}</td>
                                 <td>{{ registro.group_name }}</td>
                                 <td>{{ registro.subject_name }}</td>
-                                <td>{{ formatearFecha(registro.date) }}</td>
+                                <td>{{ formatearFechaSimple(registro.date) }}</td>
                                 <td>
                                     <span class="attendance-status" [class]="getEstadoAsistenciaClass(registro.status)">
                                         {{ getEstadoAsistenciaText(registro.status) }}

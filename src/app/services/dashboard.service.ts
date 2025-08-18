@@ -55,18 +55,85 @@ export class DashboardService {
     }));
   }
 
+  // Método para probar diferentes formatos de fecha
+  probarFormatosFecha(fechaBase: string): void {
+    console.log('PROBANDO DIFERENTES FORMATOS DE FECHA');
+    console.log('Fecha base:', fechaBase);
+    
+    // Crear diferentes formatos de la misma fecha
+    const fechaObj = new Date(fechaBase);
+    
+    const formatos = [
+      { nombre: 'Original', valor: fechaBase },
+      { nombre: 'ISO String', valor: fechaObj.toISOString() },
+      { nombre: 'ISO Date', valor: fechaObj.toISOString().split('T')[0] },
+      { nombre: 'Local String', valor: fechaObj.toString() },
+      { nombre: 'Local Date String', valor: fechaObj.toLocaleDateString() },
+      { nombre: 'UTC String', valor: fechaObj.toUTCString() }
+    ];
+    
+    formatos.forEach(formato => {
+      console.log(`${formato.nombre}:`, formato.valor);
+    });
+    
+    // Mostrar información de zona horaria
+    console.log('Zona horaria del navegador:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log('Offset de zona horaria (minutos):', fechaObj.getTimezoneOffset());
+    console.log('Offset de zona horaria (horas):', fechaObj.getTimezoneOffset() / 60);
+  }
+
+
+
   // Obtener alumnos con más ausencias por grupo (API real)
   getTopAbsencesByGroup(startDate: string, endDate: string): Observable<any[]> {
-    return this.http.get<any>(`${this.API_URL}/graphics/top-absences`, {
-      params: { startDate, endDate }
-    }).pipe(
-      map((res: any) => Array.isArray(res.data) ? res.data : [])
+    console.log('🔍 getTopAbsencesByGroup - Fechas originales:', { startDate, endDate });
+    
+    // Si las fechas son iguales, ajustar la fecha de fin para incluir todo el día
+    let adjustedEndDate = endDate;
+    let isSameDay = false;
+    
+    if (startDate === endDate) {
+      isSameDay = true;
+      // Convertir la fecha a un objeto Date y agregar 23:59:59
+      const endDateObj = new Date(endDate);
+      endDateObj.setHours(23, 59, 59, 999);
+      adjustedEndDate = endDateObj.toISOString().slice(0, 19).replace('T', ' ');
+      
+      console.log('📅 Fechas iguales detectadas - Ajustando fecha de fin:', {
+        original: endDate,
+        ajustada: adjustedEndDate,
+        esMismoDia: isSameDay
+      });
+    }
+    
+    // Construir la URL con los parámetros
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (adjustedEndDate) params.append('endDate', adjustedEndDate);
+    
+    const url = `${this.API_URL}/graphics/top-absences?${params.toString()}`;
+    console.log('🌐 URL de la petición:', url);
+    
+    return this.http.get<any>(url).pipe(
+      map(response => {
+        console.log('📊 Respuesta de la API:', response);
+        if (response && response.status === 'success' && response.data) {
+          return response.data;
+        } else {
+          console.warn('⚠️ Respuesta de la API sin datos válidos:', response);
+          return [];
+        }
+      }),
+      catchError(error => {
+        console.error('❌ Error en getTopAbsencesByGroup:', error);
+        return of([]);
+      })
     );
   }
 
   // Obtener asistencias de alumnos por grupo y rango de fechas (API real)
   getAttendanceByGroup(groupId: number, startDate: string, endDate: string): Observable<any[]> {
-    console.log('📡 Llamando a getAttendanceByGroup con:', { groupId, startDate, endDate });
+    console.log('Llamando a getAttendanceByGroup con:', { groupId, startDate, endDate });
     
     return this.http.get<any>(`${this.API_URL}/attendance`, {
       params: { 
@@ -76,7 +143,7 @@ export class DashboardService {
       }
     }).pipe(
       map((res: any) => {
-        console.log('📡 Respuesta raw de attendance:', res);
+        console.log('Respuesta raw de attendance:', res);
         
         let attendanceData: any[] = [];
         
@@ -105,12 +172,12 @@ export class DashboardService {
 
   // Obtener asignaciones del profesor
   getTeacherAssignments(teacherId: number): Observable<any[]> {
-    console.log('🔍 getTeacherAssignments - Teacher ID:', teacherId);
-    console.log('🔍 getTeacherAssignments - Token disponible:', !!localStorage.getItem('token'));
+    console.log('getTeacherAssignments - Teacher ID:', teacherId);
+    console.log('getTeacherAssignments - Token disponible:', !!localStorage.getItem('token'));
     
     return this.http.get<any>(`${this.API_URL}/teacher-subject-groups/teacher/${teacherId}`).pipe(
       map((res: any) => {
-        console.log('📡 Respuesta raw de asignaciones:', res);
+        console.log('Respuesta raw de asignaciones:', res);
         
         // Asegurar que siempre devuelva un array
         let assignments: any[] = [];
