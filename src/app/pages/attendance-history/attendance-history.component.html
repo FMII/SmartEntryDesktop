@@ -11,6 +11,9 @@
     <!-- Contenido principal -->
     <div class="content-body">
         <div class="content-card">
+            <!-- Información sobre la funcionalidad -->
+
+
             <!-- Filtros responsivos -->
             <div class="filters-container">
                 <!-- Primera fila de filtros -->
@@ -92,6 +95,37 @@
             <!-- Nueva tabla: Todos los alumnos del grupo -->
             <div class="section-header">
                 <p class="section-description">Lista completa de estudiantes del grupo seleccionado</p>
+                <!-- Indicador de estado de clase -->
+                <div class="class-status-indicator" *ngIf="selectedGroup">
+                    <div class="status-card" *ngIf="tieneClaseHoy(selectedGroup)">
+                        <div class="status-icon" [class.active]="tieneClaseActual(selectedGroup)">
+                            <i class="ti" [class.ti-clock]="!tieneClaseActual(selectedGroup)" [class.ti-play]="tieneClaseActual(selectedGroup)"></i>
+                        </div>
+                        <div class="status-info">
+                            <div class="status-title" *ngIf="tieneClaseActual(selectedGroup)">
+                                Clase en curso
+                            </div>
+                            <div class="status-title" *ngIf="!tieneClaseActual(selectedGroup)">
+                                Próxima clase
+                            </div>
+                            <div class="status-details" *ngIf="tieneClaseActual(selectedGroup)">
+                                {{ getClaseActual(selectedGroup)?.materia }} - {{ getClaseActual(selectedGroup)?.inicio }} a {{ getClaseActual(selectedGroup)?.fin }}
+                            </div>
+                            <div class="status-details" *ngIf="!tieneClaseActual(selectedGroup)">
+                                {{ getProximaClase(selectedGroup)?.materia }} - {{ getProximaClase(selectedGroup)?.inicio }} a {{ getProximaClase(selectedGroup)?.fin }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-card no-class" *ngIf="!tieneClaseHoy(selectedGroup)">
+                        <div class="status-icon">
+                            <i class="ti ti-calendar-off"></i>
+                        </div>
+                        <div class="status-info">
+                            <div class="status-title">No hay clases programadas hoy</div>
+                            <div class="status-details">Este grupo no tiene clases programadas para hoy</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="table-container">
@@ -103,6 +137,7 @@
                                 <th>NOMBRE DEL ALUMNO</th>
                                 <th>GRUPO</th>
                                 <th>ÚLTIMA FECHA</th>
+                                <th>ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody class="table-body">
@@ -128,6 +163,43 @@
                                     <span *ngIf="!getEstadoAsistenciaAlumnoActual(alumno.id || alumno.user_id)">
                                         -
                                     </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons" *ngIf="tieneClaseActual(selectedGroup) && !asistenciaYaRegistrada(alumno.id || alumno.user_id)">
+                                        <div class="class-info">
+                                            <small class="class-time">{{ getClaseActual(selectedGroup)?.inicio }} - {{ getClaseActual(selectedGroup)?.fin }}</small>
+                                            <small class="class-subject">{{ getClaseActual(selectedGroup)?.materia }}</small>
+                                        </div>
+                                        <button (click)="registrarAsistenciaPrimeraTabla(alumno, 'present')"
+                                                [disabled]="loading"
+                                                class="action-btn present-btn">
+                                            <i class="ti ti-check"></i>
+                                            <span class="btn-text">Presente</span>
+                                        </button>
+                                        <button (click)="registrarAsistenciaPrimeraTabla(alumno, 'absent')"
+                                                [disabled]="loading"
+                                                class="action-btn absent-btn">
+                                            <i class="ti ti-x"></i>
+                                            <span class="btn-text">Ausente</span>
+                                        </button>
+                                    </div>
+                                    <div class="action-buttons" *ngIf="!tieneClaseHoy(selectedGroup)">
+                                        <span class="no-class-message">No hay clases programadas hoy</span>
+                                    </div>
+                                    <div class="action-buttons" *ngIf="tieneClaseHoy(selectedGroup) && !tieneClaseActual(selectedGroup)">
+                                        <div class="class-info">
+                                            <small class="class-time">Próxima: {{ getProximaClase(selectedGroup)?.inicio }} - {{ getProximaClase(selectedGroup)?.fin }}</small>
+                                            <small class="class-subject">{{ getProximaClase(selectedGroup)?.materia }}</small>
+                                        </div>
+                                        <span class="no-class-message">Clase no iniciada</span>
+                                    </div>
+                                    <div class="action-buttons" *ngIf="tieneClaseActual(selectedGroup) && asistenciaYaRegistrada(alumno.id || alumno.user_id)">
+                                        <div class="class-info">
+                                            <small class="class-time">{{ getClaseActual(selectedGroup)?.inicio }} - {{ getClaseActual(selectedGroup)?.fin }}</small>
+                                            <small class="class-subject">{{ getClaseActual(selectedGroup)?.materia }}</small>
+                                        </div>
+                                        <span class="attendance-registered">Asistencia registrada</span>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

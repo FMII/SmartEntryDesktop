@@ -877,3 +877,402 @@
 .table-summary p {
   margin: 0;
 }
+
+/* Estilos para los botones de acción en la primera tabla */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  min-height: 60px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-btn.present-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-btn.present-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.action-btn.absent-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-btn.absent-btn:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.btn-text {
+  font-size: 11px;
+}
+
+/* Estilos para la información de la clase */
+.class-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.class-time {
+  color: #374151;
+  font-size: 10px;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
+}
+
+.class-subject {
+  color: #6b7280;
+  font-size: 9px;
+  font-weight: 400;
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estilos para los mensajes informativos */
+.no-class-message {
+  color: #6b7280;
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+  background-color: #f9fafb;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  
+  width: 100%;
+  max-width: 140px;
+  margin: 0 auto;
+}
+
+.attendance-registered {
+  color: #059669;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  padding: 8px;
+  background-color: #ecfdf5;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+}
+
+/* Ajustes para la tabla con la nueva columna */
+.data-table th:last-child,
+.data-table td:last-child {
+  text-align: center;
+  min-width: 180px; /* Aumentado de 140px para que quepa el texto completo */
+  max-width: 180px; /* Asegurar ancho consistente */
+  width: 180px; /* Forzar ancho exacto */
+}
+
+/* Responsive para botones en pantallas pequeñas */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+    min-height: 50px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+  
+  .btn-text {
+    font-size: 12px;
+  }
+  
+  .class-info {
+    margin-bottom: 2px;
+  }
+  
+  .class-time {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  
+  .class-subject {
+    font-size: 8px;
+    max-width: 70px;
+  }
+}
+
+/* Indicador de estado de clase */
+.class-status-indicator {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  /* Alinear con la columna ACCIONES de la tabla pero sin cortar el contenido */
+  margin-left: auto; /* Usar auto para alinear a la derecha */
+  margin-right: 0; /* Sin margen derecho */
+  /* Asegurar que el banner esté alineado correctamente */
+  display: flex;
+  justify-content: flex-end;
+  /* Asegurar que el banner no se corte */
+  overflow: visible;
+  position: relative;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Restaurado a 16px para mejor legibilidad */
+  padding: 16px; /* Restaurado a 16px para mejor proporción */
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  /* Asegurar que el ancho sea suficiente para el contenido */
+  min-width: 200px; /* Ancho mínimo para que se vea completo */
+  max-width: 250px; /* Ancho máximo para mantener proporción */
+  width: auto; /* Ancho automático basado en el contenido */
+  justify-content: flex-start; /* Alinear contenido a la izquierda */
+  text-align: left; /* Texto alineado a la izquierda */
+  /* Asegurar que el contenido se ajuste perfectamente */
+  box-sizing: border-box;
+  /* Asegurar que no se corte */
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.status-card.no-class {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #fecaca;
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Restaurado a 40px para mejor visibilidad */
+  height: 40px; /* Restaurado a 40px para mejor visibilidad */
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  color: white;
+  font-size: 18px; /* Restaurado a 18px para mejor visibilidad */
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.status-icon.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  animation: pulse 2s infinite;
+}
+
+.status-icon i {
+  font-size: 18px; /* Restaurado a 18px para mejor visibilidad */
+}
+
+.status-info {
+  flex: 1;
+  min-width: 0; /* Permitir que el texto se ajuste */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinear a la izquierda */
+}
+
+.status-title {
+  font-size: 14px; /* Restaurado a 14px para mejor legibilidad */
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px; /* Restaurado a 4px */
+  line-height: 1.3; /* Restaurado a 1.3 */
+  /* Asegurar que el texto se ajuste al ancho disponible */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left; /* Texto alineado a la izquierda */
+  width: 100%;
+}
+
+.status-details {
+  font-size: 12px; /* Restaurado a 12px para mejor legibilidad */
+  color: #64748b;
+  line-height: 1.4; /* Restaurado a 1.4 */
+  /* Asegurar que el texto se ajuste al ancho disponible */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left; /* Texto alineado a la izquierda */
+  width: 100%;
+}
+
+/* Asegurar que la columna ACCIONES tenga el ancho exacto */
+.data-table th:last-child,
+.data-table td:last-child {
+  text-align: center;
+  min-width: 180px;
+  max-width: 180px; /* Asegurar ancho consistente */
+  width: 180px; /* Forzar ancho exacto */
+}
+
+/* Estilos para los mensajes informativos en la columna ACCIONES */
+.no-class-message {
+  color: #6b7280;
+  font-size: 11px; /* Ajustado para coincidir con el banner */
+  font-style: italic;
+  text-align: center;
+  padding: 8px 12px; /* Ajustado padding para mejor proporción */
+  background-color: #f9fafb;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  /* Asegurar que el ancho coincida con la columna */
+  width: 100%;
+  max-width: 180px; /* Aumentado para coincidir con la columna */
+  margin: 0 auto;
+  /* Asegurar que el texto se ajuste */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.2;
+  /* Asegurar que el texto no se corte */
+  white-space: normal;
+}
+
+
+
+/* Animación de pulso para clase activa */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive para el indicador de estado */
+@media (max-width: 1200px) {
+  .class-status-indicator {
+    margin-left: auto;
+    margin-right: 16px;
+  }
+  
+  .status-card {
+    min-width: 180px;
+    max-width: 220px;
+  }
+  
+  /* Ajustar columna ACCIONES en pantallas medianas */
+  .data-table th:last-child,
+  .data-table td:last-child {
+    min-width: 160px;
+    max-width: 160px;
+    width: 160px;
+  }
+  
+  .no-class-message {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .class-status-indicator {
+    margin-left: 16px;
+    margin-right: 16px;
+    justify-content: center; /* Centrar en pantallas pequeñas */
+  }
+  
+  .status-card {
+    width: 100%; /* Usar ancho completo en pantallas pequeñas */
+    min-width: auto;
+    max-width: none;
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 12px;
+    align-items: center;
+  }
+  
+  .status-info {
+    align-items: center;
+  }
+  
+  .status-title,
+  .status-details {
+    text-align: center;
+  }
+  
+  /* Ajustar columna ACCIONES en pantallas pequeñas */
+  .data-table th:last-child,
+  .data-table td:last-child {
+    min-width: 140px;
+    max-width: 140px;
+    width: 140px;
+  }
+  
+  .no-class-message {
+    max-width: 140px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .class-status-indicator {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+  
+  .status-card {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .status-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .status-title {
+    font-size: 12px;
+  }
+  
+  .status-details {
+    font-size: 10px;
+  }
+  
+  /* Ajustar columna ACCIONES en pantallas muy pequeñas */
+  .data-table th:last-child,
+  .data-table td:last-child {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+  }
+  
+  .no-class-message {
+    max-width: 120px;
+    font-size: 9px;
+    padding: 6px 8px;
+  }
+}

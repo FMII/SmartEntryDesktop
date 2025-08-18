@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { AttendanceHistoryService } from '../../services/attendance-history.service';
 import { AuthService } from '../../services/auth.service';
+import { TeachersScheduleService } from '../../services/teachers-schedule.service';
 import { forkJoin, Subscription, timer, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { catchError, finalize, takeUntil } from 'rxjs/operators';
 
@@ -23,6 +24,8 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   registrosFiltrados: any[] = [];
   estadisticas: any = null;
   todosLosAlumnos: any[] = []; // Nueva propiedad para todos los alumnos del grupo
+  horarioActual: any[] = []; // Horario actual del profesor
+  asistenciasRegistradas: Set<string> = new Set(); // Control de asistencias ya registradas
 
   // Filtros
   selectedGroup: any = null;
@@ -56,6 +59,7 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   constructor(
     private attendanceHistoryService: AttendanceHistoryService,
     private authService: AuthService,
+    private teachersScheduleService: TeachersScheduleService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -87,6 +91,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     
     console.log('Iniciando carga de datos iniciales...');
     this.cargarDatosIniciales();
+    
+    // Iniciar timer para actualizar estado de clases cada minuto
+    this.iniciarTimerActualizacionClases();
   }
 
   ngOnDestroy(): void {
@@ -94,6 +101,10 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+    }
+    // Limpiar timer de actualización de clases
+    if (this.timerActualizacionClases) {
+      clearInterval(this.timerActualizacionClases);
     }
   }
 
@@ -115,6 +126,9 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
       return;
     }
+
+    // Cargar horario del profesor
+    this.cargarHorarioProfesor(currentTeacher.id);
 
     // Cargar solo grupos asignados al profesor (las materias se cargarán cuando se seleccione un grupo)
     this.attendanceHistoryService.getGruposAsignados(currentTeacher.id)
@@ -283,6 +297,15 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
   onGroupChange(): void {
     console.log('Grupo cambiado:', this.selectedGroup);
     
+    // Limpiar asistencias registradas al cambiar de grupo
+    this.asistenciasRegistradas.clear();
+    
+    // Recargar horario del profesor para el nuevo grupo
+    const currentTeacher = this.authService.getCurrentUser();
+    if (currentTeacher?.id) {
+      this.cargarHorarioProfesor(currentTeacher.id);
+    }
+    
     // Obtener las materias del grupo seleccionado
     const selectedGroupData = this.grupos.find(g => g.id == this.selectedGroup);
     
@@ -352,6 +375,8 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
 
   onMateriaChange(): void {
     console.log('Materia cambiada:', this.selectedMateria);
+    // Limpiar asistencias registradas al cambiar de materia
+    this.limpiarAsistenciasRegistradas();
     this.cargarHistorialAsistencia();
   }
 
@@ -359,6 +384,8 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     console.log('Fecha inicio cambiada:', this.fechaInicio);
     console.log('Tipo de fecha inicio:', typeof this.fechaInicio);
     if (this.selectedGroup) {
+      // Limpiar asistencias registradas al cambiar fechas
+      this.limpiarAsistenciasRegistradas();
       this.cargarHistorialAsistencia();
     }
   }
@@ -367,6 +394,8 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     console.log('Fecha fin cambiada:', this.fechaFin);
     console.log('Tipo de fecha fin:', typeof this.fechaFin);
     if (this.selectedGroup) {
+      // Limpiar asistencias registradas al cambiar fechas
+      this.limpiarAsistenciasRegistradas();
       this.cargarHistorialAsistencia();
     }
   }
@@ -538,6 +567,10 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.totalItems = 0;
     this.showSubjectDropdown = false;
+    
+    // Limpiar asistencias registradas y horario
+    this.limpiarAsistenciasRegistradas();
+    this.horarioActual = [];
     
     console.log('Estado después de limpiar:', {
       selectedGroup: this.selectedGroup,
@@ -782,5 +815,253 @@ export class AttendanceHistoryComponent implements OnInit, OnDestroy {
       console.error('Error en formatearFechaSimple:', error);
       return String(fecha);
     }
+  }
+
+  // Método para cargar el horario del profesor
+  cargarHorarioProfesor(teacherId: number): void {
+    this.teachersScheduleService.getFormattedSchedules(teacherId)
+      .subscribe({
+        next: (horarios) => {
+          console.log('Horarios del profesor cargados:', horarios);
+          this.horarioActual = horarios;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error al cargar horarios del profesor:', error);
+          this.horarioActual = [];
+        }
+      });
+  }
+
+  // Método para verificar si el profesor tiene clase actualmente con el grupo
+  tieneClaseActual(grupoId: number): boolean {
+    if (!this.horarioActual || this.horarioActual.length === 0) {
+      return false;
+    }
+
+    const ahora = new Date();
+    const diaActual = this.obtenerDiaSemana(ahora);
+    const horaActual = this.formatearHora(ahora);
+
+    // Buscar si hay alguna clase programada para hoy con este grupo
+    const claseHoy = this.horarioActual.find(horario => 
+      horario.group_id == grupoId && 
+      horario.dia === diaActual
+    );
+
+    if (!claseHoy) {
+      return false;
+    }
+
+    // Verificar si la hora actual está dentro del horario de la clase
+    const horaInicio = claseHoy.inicio;
+    const horaFin = claseHoy.fin;
+
+    return this.estaEnRangoHorario(horaActual, horaInicio, horaFin);
+  }
+
+  // Método para obtener información de la clase actual del grupo
+  getClaseActual(grupoId: number): any {
+    if (!this.horarioActual || this.horarioActual.length === 0) {
+      return null;
+    }
+
+    const ahora = new Date();
+    const diaActual = this.obtenerDiaSemana(ahora);
+    const horaActual = this.formatearHora(ahora);
+
+    // Buscar la clase actual para hoy con este grupo
+    return this.horarioActual.find(horario => 
+      horario.group_id == grupoId && 
+      horario.dia === diaActual &&
+      this.estaEnRangoHorario(horaActual, horario.inicio, horario.fin)
+    );
+  }
+
+  // Método para obtener la próxima clase del grupo
+  getProximaClase(grupoId: number): any {
+    if (!this.horarioActual || this.horarioActual.length === 0) {
+      return null;
+    }
+
+    const ahora = new Date();
+    const diaActual = this.obtenerDiaSemana(ahora);
+    const horaActual = this.formatearHora(ahora);
+
+    // Buscar la próxima clase de hoy con este grupo
+    const clasesHoy = this.horarioActual.filter(horario => 
+      horario.group_id == grupoId && 
+      horario.dia === diaActual
+    );
+
+    if (clasesHoy.length === 0) {
+      return null;
+    }
+
+    // Ordenar por hora de inicio y encontrar la próxima
+    const clasesOrdenadas = clasesHoy.sort((a, b) => a.inicio.localeCompare(b.inicio));
+    
+    // Si la hora actual es menor que la primera clase del día, esa es la próxima
+    if (horaActual < clasesOrdenadas[0].inicio) {
+      return clasesOrdenadas[0];
+    }
+
+    // Buscar la próxima clase después de la hora actual
+    return clasesOrdenadas.find(clase => clase.inicio > horaActual) || null;
+  }
+
+  // Método para verificar si hay clase programada para hoy (sin importar la hora)
+  tieneClaseHoy(grupoId: number): boolean {
+    if (!this.horarioActual || this.horarioActual.length === 0) {
+      return false;
+    }
+
+    const ahora = new Date();
+    const diaActual = this.obtenerDiaSemana(ahora);
+
+    return this.horarioActual.some(horario => 
+      horario.group_id == grupoId && 
+      horario.dia === diaActual
+    );
+  }
+
+  // Método para obtener el día de la semana en español
+  obtenerDiaSemana(fecha: Date): string {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias[fecha.getDay()];
+  }
+
+  // Método para formatear la hora actual
+  formatearHora(fecha: Date): string {
+    return fecha.toTimeString().slice(0, 5); // HH:MM
+  }
+
+  // Método para verificar si una hora está en un rango
+  estaEnRangoHorario(horaActual: string, horaInicio: string, horaFin: string): boolean {
+    if (!horaInicio || !horaFin) return false;
+    
+    return horaActual >= horaInicio && horaActual <= horaFin;
+  }
+
+  // Método para verificar si ya se registró asistencia para un alumno hoy
+  asistenciaYaRegistrada(alumnoId: number): boolean {
+    if (!this.selectedGroup || !this.selectedMateria) {
+      return false;
+    }
+
+    const fechaHoy = new Date().toDateString();
+    const clave = `${alumnoId}-${this.selectedGroup}-${this.selectedMateria}-${fechaHoy}`;
+    
+    // Verificar si ya está en el Set local
+    if (this.asistenciasRegistradas.has(clave)) {
+      return true;
+    }
+
+    // Verificar si ya existe en los registros del historial
+    const asistenciaExistente = this.registros.find(registro => 
+      registro.user_id === alumnoId &&
+      registro.group_id == this.selectedGroup &&
+      registro.subject_id == this.selectedMateria &&
+      this.esMismaFecha(registro.date, new Date())
+    );
+
+    if (asistenciaExistente) {
+      // Agregar al Set local para evitar verificaciones futuras
+      this.asistenciasRegistradas.add(clave);
+      return true;
+    }
+
+    return false;
+  }
+
+  // Método para verificar si dos fechas son del mismo día
+  esMismaFecha(fecha1: string | Date, fecha2: Date): boolean {
+    if (!fecha1) return false;
+    
+    const date1 = new Date(fecha1);
+    const date2 = new Date(fecha2);
+    
+    return date1.toDateString() === date2.toDateString();
+  }
+
+  // Método para limpiar asistencias registradas
+  limpiarAsistenciasRegistradas(): void {
+    this.asistenciasRegistradas.clear();
+  }
+
+  // Método para registrar asistencia desde la primera tabla
+  registrarAsistenciaPrimeraTabla(alumno: any, estado: 'present' | 'absent'): void {
+    if (!this.selectedGroup || !this.selectedMateria) {
+      console.error('No hay grupo o materia seleccionada');
+      return;
+    }
+
+    if (!this.tieneClaseActual(this.selectedGroup)) {
+      console.error('No hay clase programada actualmente para este grupo');
+      return;
+    }
+
+    if (this.asistenciaYaRegistrada(alumno.id || alumno.user_id)) {
+      console.log('Asistencia ya registrada para este alumno hoy');
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    // Crear un nuevo registro de asistencia
+    const nuevoRegistro = {
+      user_id: alumno.id || alumno.user_id,
+      group_id: this.selectedGroup,
+      subject_id: this.selectedMateria,
+      date: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+      status: estado
+    };
+
+    // Llamar al servicio para crear el registro
+    this.attendanceHistoryService.crearAsistencia(nuevoRegistro)
+      .pipe(
+        catchError(error => {
+          console.error('Error al crear asistencia:', error);
+          this.error = error.message || 'Error al registrar la asistencia';
+          return [];
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (response: any) => {
+          console.log('Asistencia registrada exitosamente:', response);
+          
+          // Marcar como registrada
+          const clave = `${alumno.id || alumno.user_id}-${this.selectedGroup}-${this.selectedMateria}-${new Date().toDateString()}`;
+          this.asistenciasRegistradas.add(clave);
+          
+          // Recargar el historial para mostrar el nuevo registro
+          this.cargarHistorialAsistencia();
+          
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          console.error('Error al registrar asistencia:', error);
+          this.error = error.message || 'Error al registrar la asistencia';
+        }
+      });
+  }
+
+  // Timer para actualizar estado de clases
+  private timerActualizacionClases: any;
+
+  iniciarTimerActualizacionClases(): void {
+    // Actualizar estado de clases cada minuto
+    this.timerActualizacionClases = setInterval(() => {
+      if (this.selectedGroup) {
+        // Forzar detección de cambios para actualizar la UI
+        this.cdr.markForCheck();
+      }
+    }, 60000); // 60 segundos
   }
 }

@@ -279,6 +279,19 @@ export class AttendanceHistoryService {
     );
   }
 
+  // Método para crear un nuevo registro de asistencia
+  crearAsistencia(asistencia: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/attendance`, asistencia).pipe(
+      timeout(10000),
+      map((response: any) => {
+        // Clear cache for attendance data
+        this.clearCacheByPattern('historial');
+        return response;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   getEstadisticasAsistencia(
     groupId?: number,
     subjectId?: number,
